@@ -1,0 +1,64 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "xarray-einstats"
+readme = "README.md"
+authors = [
+    {name = "ArviZ team", email = "arviz.devs@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: Apache License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dynamic = ["version", "description"]
+dependencies = [
+  "scipy",
+  "xarray>=0.20",
+]
+
+[tool.flit.module]
+name = "xarray_einstats"
+
+[project.urls]
+source = "https://github.com/arviz-devs/xarray-einstats"
+tracker = "https://github.com/arviz-devs/xarray-einstats/issues"
+documentation = "https://xarray-einstats.readthedocs.io"
+
+[project.optional-dependencies]
+einops = [ "einops" ]
+numba = [ "numba" ]
+all = [ "einops", "numba" ]
+test = [
+    "mypy",
+    "hypothesis",
+    "pytest",
+    "pytest-cov",
+]
+doc = [
+    "furo",
+    "myst-parser",
+    "myst-nb",
+    "sphinx-copybutton",
+    "numpydoc",
+    "sphinx>=4",
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
