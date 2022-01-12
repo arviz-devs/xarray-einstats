@@ -35,7 +35,7 @@ that often also becomes less clear. `xarray-einstats` provides wrappers
 around some numpy and scipy functions (mostly `numpy.linalg` and `scipy.stats`)
 and around [einops](https://einops.rocks/) with an api and features adapted to xarray.
 
-> ⚠️  Attention: A nicer rendering of the content below is available at [our documentation](https://xarray-einstats.readthedocs.io/en/latest/)
+% ⚠️  Attention: A nicer rendering of the content below is available at [our documentation](https://xarray-einstats.readthedocs.io/en/latest/)
 
 ### Data for examples
 The examples in this overview page use the `DataArray`s from the `Dataset` below

@@ -48,7 +48,7 @@ test = [
 ]
 doc = [
     "furo",
-    "myst-parser",
+    "myst-parser[linkify]",
     "myst-nb",
     "sphinx-copybutton",
     "numpydoc",

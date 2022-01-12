@@ -1,4 +1,5 @@
 import sys
+import os
 import pathlib
 from importlib.metadata import metadata
 
@@ -14,7 +15,15 @@ author = _metadata["Author-email"].split("<", 1)[0].strip()
 copyright = f"2022, {author}"
 
 version = _metadata["Version"]
-release = ".".join(version.split(".")[:2])
+if os.environ.get("READTHEDOCS", False):
+    rtd_version = os.environ.get("READTHEDOCS_VERSION", "")
+    if "." not in rtd_version and rtd_version.lower() != "stable":
+        version = "dev"
+else:
+    branch_name = os.environ.get("BUILD_SOURCEBRANCHNAME", "")
+    if branch_name == "main":
+        version = "dev"
+release = version
 
 
 # -- General configuration
@@ -30,6 +39,12 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
+
+exclude_patterns = ["Thumbs.db", ".DS_Store", ".ipynb_checkpoints"]
+
+# -- Options for extensions
+
+myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "amsmath"]
 
 
 # -- Options for HTML output
