@@ -1,7 +1,5 @@
-from collections.abc import Sequence
-
-import xarray as xr
 import einops
+import xarray as xr
 
 __all__ = ["rearrange"]
 
@@ -100,7 +98,9 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
         in_names = []
         in_pattern = ""
     else:
-        in_dims, in_names, in_pattern = process_pattern_list(in_dims, handler=handler, allow_list=False)
+        in_dims, in_names, in_pattern = process_pattern_list(
+            in_dims, handler=handler, allow_list=False
+        )
     # note, not using sets for da_dims to avoid transpositions on missing variables,
     # if they wanted to transpose those they would not be missing variables
     out_dims, out_names, out_pattern = process_pattern_list(out_dims, handler=handler)
@@ -110,8 +110,12 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     pattern = f"{handler.get_names(missing_in_dims)} {in_pattern} ->\
         {handler.get_names(missing_out_dims)} {out_pattern}"
 
-    axes_lengths = {handler.rename_kwarg(k): v for k, v in kwargs.items() if k in out_names+out_dims}
-    kwargs = {k: v for k, v in kwargs.items() if k not in out_names+out_dims}
+    axes_lengths = {
+        handler.rename_kwarg(k): v
+        for k, v in kwargs.items()
+        if k in out_names + out_dims
+    }
+    kwargs = {k: v for k, v in kwargs.items() if k not in out_names + out_dims}
     print(pattern)
     print((missing_in_dims, "+", in_names))
     print((missing_out_dims, "+", out_names))

@@ -13,9 +13,10 @@
     but the output will be a numpy array.
 """
 
-import xarray as xr
-import numpy as np
 from collections.abc import Sequence
+
+import numpy as np
+import xarray as xr
 
 
 def _wrap_method(method):

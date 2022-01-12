@@ -7,9 +7,6 @@ build:
   tools:
     python: "3.9"
 
-sphinx:
-  fail_on_warning: true
-
 python:
    install:
    - method: pip
