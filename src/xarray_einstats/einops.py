@@ -78,7 +78,7 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     Notes
     -----
     Unlike for general xarray objects, where dimension
-    names can be :term:`xarray:hashable` here
+    names can be :term:`hashable <xarray:name>` here
     dimension names are not recommended but required to be
     strings.
 

@@ -99,7 +99,7 @@ of the elements respectively: `->`, space as delimiter and parenthesis:
   side in the einops notation is only used to label the dimensions.
   In fact, 5/7 examples in https://einops.rocks/api/rearrange/ fall in this category.
   This is not necessary when working with xarray objects.
-* In xarray dimension names can be any {term}`xarray:hashable`. `xarray-einstats` only
+* In xarray dimension names can be any {term}`hashable <xarray:name>`. `xarray-einstats` only
   supports strings as dimension names, but the space can't be used as delimiter.
 * In xarray dimensions are labeled and the order doesn't matter.
   This might seem the same as the first reason but it is not. When splitting
@@ -108,6 +108,19 @@ of the elements respectively: `->`, space as delimiter and parenthesis:
   in general you'll want to give a name to the new dimension. After all,
   dimension order in xarray doesn't matter and there isn't much to be done without knowing
   the dimension names.
+
+:::{attention}
+We also provide some cruder wrappers with syntax closer to einops.
+We are experimenting on trying to find the right spot between being clear,
+semantic and flexible yet concise.
+
+These `raw_` wrappers like {func}`xarray_einstats.einops.raw_rearrange`
+impose several extra constraints to accepted xarray inputs, in addition
+to dimension names being strings.
+
+The example data we are using on this page uses single word alphabetical
+dimensions names which allows us to demonstrate both side by side.
+:::
 
 `xarray-einstats` uses two separate arguments, one for the input pattern (optional) and
 another for the output pattern. Each is a list of dimensions (strings)
@@ -119,6 +132,7 @@ and is not modified.
 
 ```python
 rearrange(ds.atts, [{"sample": ("chain", "draw")}])
+raw_rearrange(ds.atts, "(chain draw)=sample")
 ```
 
 Out:
@@ -142,6 +156,7 @@ it can matter. You can change the pattern to enforce the output dimension order:
 
 ```python
 rearrange(ds.atts, [{"sample": ("chain", "draw")}, "team"])
+raw_rearrange(ds.atts, "(chain draw)=sample team")
 ```
 
 Out:
@@ -164,12 +179,17 @@ then combine those split dimensions between them.
 ```python
 rearrange(
     ds.atts,
+    # use dicts to specify which dimensions to split, here we *need* to use a dict
+    in_dims=[{"chain": ("chain1", "chain2")}, {"team": ("team1", "team2")}],
     # combine split chain and team dims between them
     # here we don't use a dict so the new dimensions get a default name
     out_dims=[("chain1", "team1"), ("team2", "chain2")],
-    # use dicts to specify which dimensions to split, here we *need* to use a dict
-    in_dims=[{"chain": ("chain1", "chain2")}, {"team": ("team1", "team2")}],
     # set the lengths of split dimensions as kwargs
+    chain1=2, chain2=2, team1=2, team2=3
+)
+raw_rearrange(
+    ds.atts,
+    "(chain1 chain2)=chain (team1 team2)=team -> (chain1 team1) (team2 chain2)",
     chain1=2, chain2=2, team1=2, team2=3
 )
 ```
