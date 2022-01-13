@@ -6,6 +6,7 @@
 ```
 
 ```{eval-rst}
+.. currentmodule:: xarray_einstats
 .. autosummary::
   :toctree: generated/
 
@@ -25,5 +26,7 @@
 
   rearrange
   raw_rearrange
+  reduce
+  raw_reduce
 ```
 

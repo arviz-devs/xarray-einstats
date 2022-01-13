@@ -22,13 +22,17 @@ As stated in their website:
 > xarray makes working with multi-dimensional labeled arrays simple, efficient and fun!
 
 The code is often more verbose, but it is generally because it is clearer and thus less error prone
-and intuitive. Here are some examples of such trade-off:
+and more intuitive.
+Here are some examples of such trade-off where we believe the increased clarity is worth
+the extra characters:
+
 
 |  numpy  |  xarray  |
 |---------|----------|
 | `a[2, 5]` | `da.sel(drug="paracetamol", subject=5)` |
 | `a.mean(axis=(0, 1))` | `da.mean(dim=("chain", "draw"))` |
-| `` | `` |
+| `a.reshape((-1, 10))  | `da.stack(sample=("chain", "draw"))` |
+| `a.transpose(2, 0, 1)` | `da.transpose("drug", "chain", "draw")` |
 
 In some other cases however, using xarray can result in overly verbose code
 that often also becomes less clear. `xarray-einstats` provides wrappers
@@ -83,7 +87,7 @@ Dimensions without coordinates: dim_plot
 ```
 
 ### einops
-**only rearrange wrapped for now**
+**repeat wrapper still missing**
 
 [einops](https://einops.rocks/) uses a convenient notation inspired in
 Einstein notation to specify operations on multidimensional arrays.

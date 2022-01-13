@@ -42,9 +42,24 @@ templates_path = ["_templates"]
 
 exclude_patterns = ["Thumbs.db", ".DS_Store", ".ipynb_checkpoints"]
 
+# The reST default role (used for this markup: `text`) to use for all documents.
+default_role = "code"
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = False
+
 # -- Options for extensions
 
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "amsmath"]
+
+autosummary_generate = True
+autodoc_typehints = 'none'
+
+numpydoc_xref_param_type = True
+numpydoc_xref_ignore = {"of", "optional"}
+numpydoc_xref_aliases = {
+    "DataArray": ":class:`xarray.DataArray`",
+}
 
 
 # -- Options for HTML output
@@ -55,7 +70,7 @@ html_static_path = ["_static"]
 intersphinx_mapping = {
     "dask": ("https://docs.dask.org/en/latest/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "python": ("https://docs.python.org/3/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     "xarray": ("http://xarray.pydata.org/en/stable/", None),
 }
-

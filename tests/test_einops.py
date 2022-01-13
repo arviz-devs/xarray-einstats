@@ -3,7 +3,13 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xarray_einstats.einops import raw_rearrange, rearrange, translate_pattern
+from xarray_einstats.einops import (
+    raw_rearrange,
+    raw_reduce,
+    rearrange,
+    reduce,
+    translate_pattern,
+)
 
 einops = pytest.importorskip("einops")  # pylint: disable=invalid-name
 
@@ -77,5 +83,58 @@ class TestRearrange:
     def test_rearrange(self, data, args):
         kwargs, (shape, dims) = args
         out_da = rearrange(data.rename({"drug": "drug dose (mg)"}), **kwargs)
+        assert out_da.shape == shape
+        assert list(out_da.dims) == dims
+
+
+class TestRawReduce:
+    @pytest.mark.parametrize(
+        "args",
+        (
+            ("batch subject", {}, ((4, 6), ["batch", "subject"])),
+            (
+                "(h1 h2)=experiment (w1 w2)=subject -> batch h1 w1",
+                dict(h2=3, w2=2),
+                ((4, 5, 3), ["batch", "h1", "w1"]),
+            ),
+        ),
+    )
+    def test_raw_reduce(self, data, args):
+        pattern, kwargs, (shape, dims) = args
+        out_da = raw_reduce(data, pattern, "mean", **kwargs)
+        assert out_da.shape == shape
+        assert list(out_da.dims) == dims
+
+
+class TestReduce:
+    @pytest.mark.parametrize(
+        "args",
+        (
+            (
+                dict(out_dims=["batch (hh.mm)", "subject"]),
+                ((4, 6), ["batch (hh.mm)", "subject"]),
+            ),
+            (
+                dict(
+                    in_dims=[{"batch (hh.mm)": ("d1", "d2")}],
+                    out_dims=["d1", "subject"],
+                    d2=2,
+                ),
+                ((2, 6), ["d1", "subject"]),
+            ),
+            (
+                dict(
+                    in_dims=[{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
+                    out_dims=["subject", ("b1", "d1")],
+                    d2=4,
+                    b2=2,
+                ),
+                ((6, 2 * 2), ["subject", "b1,d1"]),
+            ),
+        ),
+    )
+    def test_reduce(self, data, args):
+        kwargs, (shape, dims) = args
+        out_da = reduce(data.rename({"batch": "batch (hh.mm)"}), reduction="mean", **kwargs)
         assert out_da.shape == shape
         assert list(out_da.dims) == dims
