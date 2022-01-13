@@ -45,6 +45,7 @@ test = [
     "hypothesis",
     "pytest",
     "pytest-cov",
+    "einops"
 ]
 doc = [
     "furo",
