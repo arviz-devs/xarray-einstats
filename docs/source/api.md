@@ -24,5 +24,6 @@
   :toctree: generated/
 
   rearrange
+  raw_rearrange
 ```
 

@@ -1,7 +1,8 @@
+"""einops module."""
 import einops
 import xarray as xr
 
-__all__ = ["rearrange"]
+__all__ = ["rearrange", "raw_rearrange"]
 
 
 class DimHandler:
@@ -39,9 +40,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
                 )
             key, values = list(subitem.items())[0]
             if isinstance(values, str):
-                raise ValueError(
-                    "Found values of type str in a pattern dict, use xarray.rename"
-                )
+                raise ValueError("Found values of type str in a pattern dict, use xarray.rename")
             out.extend(values)
             out_names.append(key)
             txt.append(f"( {handler.get_names(values)} )")
@@ -58,7 +57,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
 
 
 def rearrange(da, out_dims, in_dims=None, **kwargs):
-    """Wrapper around einops.rearrange.
+    """Wrap einops.rearrange.
 
     Parameters
     ----------
@@ -71,8 +70,6 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
         The input pattern for the dimensions.
         This is only necessary if you want to split some dimensions.
         In einops, the left side of the pattern serves two goals
-    axes_lengths : dict, optional
-        kwargs passed to einops.rearrange
     kwargs : dict, optional
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
@@ -85,10 +82,12 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     dimension names are not recommended but required to be
     strings.
 
-    See also
+    See Also
     --------
-    xarray.DataArray.transpose
-    xarray.Dataset.transpose
+    xarray_einstats.raw_rearrange:
+        Cruder wrapper of einops.rearrange, allowed characters in dimension names are restricted
+    xarray.DataArray.transpose, xarray.Dataset.transpose
+    xarray.DataArray.stack, xarray.Dataset.stack
     """
     da_dims = da.dims
 
@@ -111,16 +110,9 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
         {handler.get_names(missing_out_dims)} {out_pattern}"
 
     axes_lengths = {
-        handler.rename_kwarg(k): v
-        for k, v in kwargs.items()
-        if k in out_names + out_dims
+        handler.rename_kwarg(k): v for k, v in kwargs.items() if k in out_names + out_dims
     }
     kwargs = {k: v for k, v in kwargs.items() if k not in out_names + out_dims}
-    print(pattern)
-    print((missing_in_dims, "+", in_names))
-    print((missing_out_dims, "+", out_names))
-    print(axes_lengths)
-    print(kwargs)
     return xr.apply_ufunc(
         einops.rearrange,
         da,
@@ -130,3 +122,87 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
         kwargs=axes_lengths,
         **kwargs,
     )
+
+
+def translate_pattern(pattern):
+    dims = []
+    current_dim = ""
+    current_block = []
+    parsing_block = 0  # 0=no block, 1=block, 2=just closed, waiting for key
+    parsing_key = False
+    for char in pattern.strip() + " ":
+        if char == " ":
+            if parsing_key:
+                if current_dim:
+                    dims.append({current_dim: current_block})
+                else:
+                    dims.append(current_block)
+                current_block = []
+                parsing_key = False
+                parsing_block = False
+            elif not current_dim:
+                continue
+            elif parsing_block:
+                current_block.append(current_dim)
+            else:
+                dims.append(current_dim)
+            current_dim = ""
+        elif char == ")":
+            if parsing_block:
+                parsing_block = False
+                parsing_key = True
+                if current_dim:
+                    current_block.append(current_dim)
+                current_dim = ""
+            else:
+                raise ValueError("unmatched parenthesis")
+        elif char == "(":
+            parsing_block = 1
+        elif char == "=":
+            if not parsing_key:
+                raise ValueError("= sign must follow a closing parenthesis )")
+        else:
+            current_dim += char
+    return dims
+
+
+def raw_rearrange(da, pattern, **kwargs):
+    """Crudely wrap einops.rearrange.
+
+    Wrapper around einops.rearrange with a very similar syntax.
+    Spaces, parenthesis ``()`` and `->` are not allowed in dimension names.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        Input array
+    pattern : string
+        Pattern string. Same syntax as patterns in einops with two
+        caveats:
+
+        * Unless splitting or stacking, you must use the actual dimension names.
+        * When splitting or stacking you can use `(dim1 dim2)=dim`. This is `necessary`
+          for the left hand side as it identifies the dimension to split, and
+          optional on the right hand side, if omitted the stacked dimension will be given
+          a default name.
+
+    kwargs : dict, optional
+        Passed to :func:`xarray_einstats.rearrange`
+
+    Returns
+    -------
+    xarray.DataArray
+
+    See Also
+    --------
+    xarray_einstats.rearrange:
+        More flexible and powerful wrapper over einops.rearrange. It is also more verbose.
+    """
+    if "->" in pattern:
+        in_pattern, out_pattern = pattern.split("->")
+        in_dims = translate_pattern(in_pattern)
+    else:
+        out_pattern = pattern
+        in_dims = None
+    out_dims = translate_pattern(out_pattern)
+    return rearrange(da, out_dims=out_dims, in_dims=in_dims, **kwargs)

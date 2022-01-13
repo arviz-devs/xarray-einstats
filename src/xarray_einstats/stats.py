@@ -30,9 +30,7 @@ def _wrap_method(method):
                     coords={"quantile": np.asarray(x_or_q)},
                 )
                 args = (x_or_q, *args[1:])
-        args, kwargs = self._broadcast_args(  # pylint: disable=protected-access
-            args, kwargs
-        )
+        args, kwargs = self._broadcast_args(args, kwargs)  # pylint: disable=protected-access
         meth = getattr(self.dist, method)
         return xr.apply_ufunc(meth, *args, kwargs=kwargs)
 
@@ -40,6 +38,21 @@ def _wrap_method(method):
 
 
 class XrRV:
+    """Base random variable wrapper class.
+
+    Most methods have a common signature between continuous and
+    discrete variables in scipy. We define a base wrapper and
+    then subclass it to add the specific methods like pdf or pmf.
+
+    Notes
+    -----
+    One of the main goals of this library is ease of maintenance.
+    We could wrap each distribution to preserve call signatures
+    and avoid different behaviour between passing input arrays
+    as args or kwargs, but so far we don't consider what we'd won
+    doing this to be worth the extra maintenance burden.
+    """
+
     def __init__(self, dist, *args, **kwargs):
         self.dist = dist
         self.args = args
@@ -73,6 +86,11 @@ class XrRV:
         return args, kwargs
 
     def rvs(self, *args, size=1, random_state=None, dims=None, **kwargs):
+        """Implement base rvs method.
+
+        In scipy, rvs has a common signature that doesn't depend on continuous
+        or discrete, so we can define it here.
+        """
         args, kwargs = self._broadcast_args(args, kwargs)
         size_in = tuple()
         dims_in = tuple()
