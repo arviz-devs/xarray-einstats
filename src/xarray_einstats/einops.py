@@ -1,6 +1,5 @@
 """Wrappers for `einops <https://einops.rocks/>`_.
 
-
 The einops module is available only from ``xarray_einstats.einops`` and is not
 imported when doing ``import xarray_einstats``.
 To use it you need to have installed einops manually or alternatively
@@ -14,10 +13,13 @@ __all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce"]
 
 
 class DimHandler:
+    """Handle converting actual dimension names to placeholders for einops."""
+
     def __init__(self):
         self.mapping = {}
 
     def get_name(self, dim):
+        """Return or generate a placeholder for a dimension name."""
         if dim in self.mapping:
             return self.mapping.get(dim)
         dim_txt = f"d{len(self.mapping)}"
@@ -25,13 +27,58 @@ class DimHandler:
         return dim_txt
 
     def get_names(self, dim_list):
+        """Automate calling get_name with an iterable."""
         return " ".join((self.get_name(dim) for dim in dim_list))
 
     def rename_kwarg(self, key):
+        """Process kwargs for axes_lengths.
+
+        Users use as keys the dimension names they used in the input expressions
+        which need to be converted and use the placeholder as key when passed
+        to einops functions.
+        """
         return self.mapping.get(key, key)
 
 
 def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
+    """Process a pattern list and convert it to an einops expression using placeholders.
+
+    Parameters
+    ----------
+    redims : pattern_list
+        One of ``out_dims`` or ``in_dims`` in {func}`~xarray_einstats.einops.rearrange`
+        or {func}`~xarray_einstats.einops.reduce`.
+    handler : DimHandler
+    allow_dict, allow_list : bool, optional
+        Whether or not to allow lists or dicts as elements of ``redims``.
+        When processing ``in_dims`` for example we need the names of
+        the variables to be decomposed so dicts are required and lists/tuples
+        are not accepted.
+
+    Returns
+    -------
+    expression_dims : list of str
+        A list with the names of the dimensions present in the out expression
+    output_dims : list of str
+        A list with the names of the dimensions present in the output.
+        It differs from ``expression_dims`` because there might be dimensions
+        being stacked.
+    pattern : str
+        The einops expression equivalent to the operations in ``redims`` pattern
+        list.
+
+    Examples
+    --------
+    Whenever we have groupings of dimensions (be it to decompose or to stack),
+    ``expression_dims`` and ``output_dims`` differ:
+
+    .. jupyter-execute::
+
+        from xarray_einstats.einops import process_pattern_list, DimHandler
+        handler = DimHandler()
+        process_pattern_list(["a", {"b": ("c", "d")}, ("e", "f", "g")], handler)
+
+    """
     out = []
     out_names = []
     txt = []
@@ -65,6 +112,27 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
 
 
 def translate_pattern(pattern):
+    """Translate a string pattern to a list pattern.
+
+    Parameters
+    ----------
+    pattern : str
+        Input pattern as a string. The ``raw_`` wrappers use these patterns.
+
+    Returns
+    -------
+    pattern_list
+        Pattern translated to list, as used by the full fledged wrappers
+        instead of the ``raw_`` ones.
+
+    Examples
+    --------
+    .. jupyter-execute::
+
+        from xarray_einstats.einops import translate_pattern
+        translate_pattern("a (c d)=b (e f g)")
+
+    """
     dims = []
     current_dim = ""
     current_block = []

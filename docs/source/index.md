@@ -3,16 +3,25 @@
 ```
 
 :::{toctree}
-:caption: User Guide
 :hidden:
 
 installation
-tutorials/einops-basics-port
+tutorials/index
+api
 :::
 
 ```{toctree}
-:caption: Reference
+:caption: Contributing
 :hidden:
 
-api
+contributing
+dev_reference
+```
+
+```{toctree}
+:caption: About
+:hidden:
+
+Twitter <https://twitter.com/arviz_devs>
+GitHub repository <https://github.com/arviz-devs/xarray-einstats>
 ```

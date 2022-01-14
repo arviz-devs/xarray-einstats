@@ -140,7 +140,12 @@ setattr(XrRV, "isf", _wrap_method("isf"))
 
 
 class XrContinuousRV(XrRV):
-    """Wrapper for subclasses of :class:`~scipy.stats.rv_continuous`."""
+    """Wrapper for subclasses of :class:`~scipy.stats.rv_continuous`.
+
+    See Also
+    --------
+    xarray_einstats.stats.XrDiscreteRV
+    """
 
 
 setattr(XrContinuousRV, "pdf", _wrap_method("pdf"))
@@ -148,7 +153,12 @@ setattr(XrContinuousRV, "logpdf", _wrap_method("logpdf"))
 
 
 class XrDiscreteRV(XrRV):
-    """Wrapper for subclasses of :class:`~scipy.stats.rv_discrete`."""
+    """Wrapper for subclasses of :class:`~scipy.stats.rv_discrete`.
+
+    See Also
+    --------
+    xarray_einstats.stats.XrDiscreteRV
+    """
 
 
 setattr(XrDiscreteRV, "pmf", _wrap_method("pmf"))

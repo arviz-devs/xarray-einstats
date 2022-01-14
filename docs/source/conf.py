@@ -36,6 +36,7 @@ extensions = [
     "numpydoc",
     "myst_nb",
     "sphinx_copybutton",
+    "jupyter_sphinx",
 ]
 
 templates_path = ["_templates"]
@@ -67,6 +68,8 @@ numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {"of", "optional"}
 numpydoc_xref_aliases = {
     "DataArray": ":class:`xarray.DataArray`",
+    "pattern_list": "list of str, list or dict",
+    "DimHandler": ":class:`~xarray_einstats.einops.DimHandler`",
 }
 
 
@@ -74,6 +77,17 @@ numpydoc_xref_aliases = {
 
 html_theme = "furo"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_theme_options = {
+    "light_css_variables": {
+        "color-brand-primary": "#0f718e",
+        "color-brand-content": "#069fac",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#069fac",
+        "color-brand-content": "#00c0bf",
+    },
+}
 
 intersphinx_mapping = {
     "dask": ("https://docs.dask.org/en/latest/", None),

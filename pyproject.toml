@@ -54,6 +54,7 @@ doc = [
     "sphinx-copybutton",
     "numpydoc",
     "sphinx>=4",
+    "jupyter-sphinx",
     "einops"
 ]
 
