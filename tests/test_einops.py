@@ -3,13 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xarray_einstats.einops import (
-    raw_rearrange,
-    raw_reduce,
-    rearrange,
-    reduce,
-    translate_pattern,
-)
+from xarray_einstats.einops import raw_rearrange, raw_reduce, rearrange, reduce, translate_pattern
 
 einops = pytest.importorskip("einops")  # pylint: disable=invalid-name
 
