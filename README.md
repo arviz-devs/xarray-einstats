@@ -31,7 +31,7 @@ the extra characters:
 |---------|----------|
 | `a[2, 5]` | `da.sel(drug="paracetamol", subject=5)` |
 | `a.mean(axis=(0, 1))` | `da.mean(dim=("chain", "draw"))` |
-| `a.reshape((-1, 10))  | `da.stack(sample=("chain", "draw"))` |
+| `a.reshape((-1, 10))`  | `da.stack(sample=("chain", "draw"))` |
 | `a.transpose(2, 0, 1)` | `da.transpose("drug", "chain", "draw")` |
 
 In some other cases however, using xarray can result in overly verbose code
