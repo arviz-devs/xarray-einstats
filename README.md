@@ -212,7 +212,7 @@ Coordinates:
 Dimensions without coordinates: chain1,team1, team2,chain2
 ```
 
-More einops examples at {ref}`einops`
+More einops examples at {ref}`einops-tutorial`
 
 ### Linear Algebra
 

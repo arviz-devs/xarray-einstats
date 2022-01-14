@@ -6,7 +6,8 @@
 :caption: User Guide
 :hidden:
 
-einops
+installation
+tutorials/einops-basics-port
 :::
 
 ```{toctree}

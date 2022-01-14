@@ -1,0 +1,43 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "ims/.zarray": {
+            "chunks": [
+                3,
+                48,
+                96,
+                3
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                6,
+                96,
+                96,
+                3
+            ],
+            "zarr_format": 2
+        },
+        "ims/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "batch",
+                "height",
+                "width",
+                "channel"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}

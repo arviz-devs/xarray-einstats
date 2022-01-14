@@ -40,7 +40,13 @@ extensions = [
 
 templates_path = ["_templates"]
 
-exclude_patterns = ["Thumbs.db", ".DS_Store", ".ipynb_checkpoints"]
+exclude_patterns = [
+    "Thumbs.db",
+    ".DS_Store",
+    ".ipynb_checkpoints",
+    "tutorials/einops-image.zarr",
+    "**/*.py",
+]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = "code"
@@ -50,10 +56,12 @@ add_function_parentheses = False
 
 # -- Options for extensions
 
+jupyter_execute_notebooks = "auto"
+execution_excludepatterns = ["*.ipynb"]
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "amsmath"]
 
 autosummary_generate = True
-autodoc_typehints = 'none'
+autodoc_typehints = "none"
 
 numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {"of", "optional"}

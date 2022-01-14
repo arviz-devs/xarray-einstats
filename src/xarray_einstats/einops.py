@@ -1,4 +1,12 @@
-"""Wrappers for `einops <https://einops.rocks/>`_."""
+"""Wrappers for `einops <https://einops.rocks/>`_.
+
+
+The einops module is available only from ``xarray_einstats.einops`` and is not
+imported when doing ``import xarray_einstats``.
+To use it you need to have installed einops manually or alternatively
+install this library as ``xarray-einstats[einops]`` or ``xarray-einstats[all]``.
+Details about the exact command are available at :ref:`installation`
+"""
 import einops
 import xarray as xr
 
