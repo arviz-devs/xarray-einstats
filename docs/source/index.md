@@ -14,8 +14,8 @@ api
 :caption: Contributing
 :hidden:
 
-contributing
-dev_reference
+Overview <contributing>
+Reference <dev_reference>
 ```
 
 ```{toctree}

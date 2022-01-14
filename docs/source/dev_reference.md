@@ -1,4 +1,4 @@
-# Reference
+# Contributing reference
 Reference document for contributors.
 Here we document part of the private API of the library as well as
 the suite of developer commands and scripts configured and included in the repository.
