@@ -12,5 +12,6 @@ module. Each module explains its optional dependencies
 :maxdepth: 1
 
 stats
+linalg
 einops
 :::

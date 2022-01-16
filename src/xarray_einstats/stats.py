@@ -17,6 +17,72 @@ from collections.abc import Sequence
 
 import numpy as np
 import xarray as xr
+from scipy import stats
+
+__all__ = ["XrContinuousRV", "XrDiscreteRV", "rankdata", "gmean", "hmean"]
+
+
+def get_default_dims(dims):
+    """Get default dims on which to perfom an operation.
+
+    Whenever a function from :mod:`xarray_einstats.stats` is called with
+    ``dims=None`` (the default) this function is called to choose the
+    default dims on which to operate out of the list with all the dims present.
+
+    This function is thought to be monkeypatched by domain specific applications
+    as shown in the examples.
+
+    Parameters
+    ----------
+    dims : list of str
+        List with all the dimensions of the input DataArray in the order they
+        appear.
+
+    Returns
+    -------
+    list of str
+        List with the dimensions on which to apply the operation.
+        ``xarray_einstats`` defaults to applying the operation to all
+        dimensions. Monkeypatch this function to get a different result.
+
+    Examples
+    --------
+    The ``xarray_einstats`` default behaviour is operating (averaging in this case)
+    over all dimensions present in the input DataArray:
+
+    .. jupyter-execute::
+
+        from xarray_einstats import stats
+        import xarray as xr; import numpy as np
+        rng = np.random.default_rng(3)
+        da = xr.DataArray(
+            rng.exponential(size=(4, 10, 6)),
+            dims=["chain", "draw", "team"]
+        )
+        stats.hmean(da)
+
+    Here we show how to monkeypatch ``get_default_dims`` to get a different default
+    behaviour. If you use ``xarray_einstats`` and {doc}`arviz:index` to work
+    with MCMC results, operating over chain and dim only might be a better default:
+
+    .. jupyter-execute::
+
+        def get_default_dims(dims):
+            out = [dim for dim in ("chain", "draw") if dim in dims]
+            if not out:  # if chain nor draw are present fall back to all dims
+                return dims
+            return out
+        stats.get_default_dims = get_default_dims
+        stats.hmean(da)
+
+    You can still use ``dims`` explicitly to average over any custom dimension
+
+    .. jupyter-execute::
+
+        stats.hmean(da, dims="team")
+
+    """
+    return dims
 
 
 def _wrap_method(method):
@@ -180,3 +246,70 @@ def _add_docstrings(cls, wrapped_cls, methods):
 base_methods = ["cdf", "logcdf", "sf", "logsf", "ppf", "isf", "rvs"]
 _add_docstrings(XrContinuousRV, "rv_continuous", base_methods + ["pdf", "logpdf"])
 _add_docstrings(XrDiscreteRV, "rv_discrete", base_methods + ["pmf", "logpmf"])
+
+
+def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
+    """Help wrap functions with a single input that return an output with the same size."""
+    unstack = False
+
+    if not isinstance(dims, str):
+        da = da.stack(__aux_dim__=dims)
+        core_dims = ["__aux_dim__"]
+        unstack = True
+    else:
+        core_dims = [dims]
+    out_da = xr.apply_ufunc(
+        func,
+        da,
+        input_core_dims=[core_dims],
+        output_core_dims=[core_dims],
+        kwargs=func_kwargs,
+        **kwargs,
+    )
+    if unstack:
+        return out_da.unstack("__aux_dim__")
+    return out_da
+
+
+def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
+    if not isinstance(dims, str):
+        da = da.stack(__aux_dim__=dims)
+        core_dims = ["__aux_dim__"]
+    else:
+        core_dims = [dims]
+    out_da = xr.apply_ufunc(
+        func, da, input_core_dims=[core_dims], output_core_dims=[[]], kwargs=func_kwargs, **kwargs
+    )
+    return out_da
+
+
+def rankdata(da, dims=None, method=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.rankdata`."""
+    rank_kwargs = {"axis": -1}
+    if method is not None:
+        rank_kwargs["method"] = method
+    if dims is None:
+        dims = get_default_dims(da.dims)
+    return _apply_nonreduce_func(stats.rankdata, da, dims, kwargs, rank_kwargs)
+
+
+def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.gmean`."""
+    gmean_kwargs = {"axis": -1}
+    if dtype is not None:
+        gmean_kwargs["dtype"] = dtype
+    if weights is not None:
+        gmean_kwargs["weights"] = weights
+    if dims is None:
+        dims = get_default_dims(da.dims)
+    return _apply_reduce_func(stats.gmean, da, dims, kwargs, gmean_kwargs)
+
+
+def hmean(da, dims=None, dtype=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.hmean`."""
+    hmean_kwargs = {"axis": -1}
+    if dtype is not None:
+        hmean_kwargs["dtype"] = dtype
+    if dims is None:
+        dims = get_default_dims(da.dims)
+    return _apply_reduce_func(stats.hmean, da, dims, kwargs, hmean_kwargs)

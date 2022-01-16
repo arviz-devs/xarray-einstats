@@ -90,6 +90,7 @@ html_theme_options = {
 }
 
 intersphinx_mapping = {
+    "arviz": ("https://arviz-devs.github.io/arviz", None),
     "dask": ("https://docs.dask.org/en/latest/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),

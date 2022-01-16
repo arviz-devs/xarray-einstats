@@ -3,28 +3,6 @@ Reference document for contributors.
 Here we document part of the private API of the library as well as
 the suite of developer commands and scripts configured and included in the repository.
 
-## Private API
-
-### Stats
-```{eval-rst}
-.. currentmodule:: xarray_einstats.stats
-.. autosummary::
-  :toctree: generated/
-
-  XrRV
-```
-
-### Einops
-```{eval-rst}
-.. currentmodule:: xarray_einstats.einops
-.. autosummary::
-  :toctree: generated/
-
-  DimHandler
-  process_pattern_list
-  translate_pattern
-```
-
 ## tox commands
 `xarray-einstats` uses `tox` to automatically handle
 testing (locally and on GitHub actions),
@@ -55,3 +33,41 @@ Uses `gnome-open` to open the documentation build by tox. Opens the homepage
 
 ### py3x
 Runs test suite with pytest
+
+## Private API
+
+### Stats
+```{eval-rst}
+.. currentmodule:: xarray_einstats.stats
+.. autosummary::
+  :toctree: generated/
+
+
+  _wrap_method
+  _add_docstrings
+  XrRV
+  _apply_nonreduce_func
+  _apply_reduce_func
+```
+
+### Linear Algebra
+```{eval-rst}
+.. currentmodule:: xarray_einstats.linalg
+.. autosummary::
+  :toctree: generated/
+
+  PairHandler
+  _einsum_parent
+```
+
+### Einops
+```{eval-rst}
+.. currentmodule:: xarray_einstats.einops
+.. autosummary::
+  :toctree: generated/
+
+  DimHandler
+  process_pattern_list
+  translate_pattern
+```
+
