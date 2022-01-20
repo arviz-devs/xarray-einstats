@@ -37,6 +37,7 @@ extensions = [
     "myst_nb",
     "sphinx_copybutton",
     "jupyter_sphinx",
+    "sphinx_design",
 ]
 
 templates_path = ["_templates"]

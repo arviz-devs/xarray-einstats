@@ -7,7 +7,8 @@
 
 installation
 tutorials/index
-api
+api/index
+background/index
 :::
 
 ```{toctree}

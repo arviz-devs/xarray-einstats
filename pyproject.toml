@@ -55,6 +55,7 @@ doc = [
     "numpydoc",
     "sphinx>=4",
     "jupyter-sphinx",
+    "sphinx-design",
     "einops"
 ]
 

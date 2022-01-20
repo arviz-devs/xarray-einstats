@@ -35,7 +35,7 @@ the extra characters:
 | `a.transpose(2, 0, 1)` | `da.transpose("drug", "chain", "draw")` |
 
 In some other cases however, using xarray can result in overly verbose code
-that often also becomes less clear. `xarray-einstats` provides wrappers
+that often also becomes less clear. `xarray_einstats` provides wrappers
 around some numpy and scipy functions (mostly `numpy.linalg` and `scipy.stats`)
 and around [einops](https://einops.rocks/) with an api and features adapted to xarray.
 
@@ -43,7 +43,7 @@ and around [einops](https://einops.rocks/) with an api and features adapted to x
 
 ### Data for examples
 The examples in this overview page use the `DataArray`s from the `Dataset` below
-(stored as `ds` variable) to illustrate `xarray-einstats` features:
+(stored as `ds` variable) to illustrate `xarray_einstats` features:
 
 ```none
 <xarray.Dataset>
@@ -60,15 +60,21 @@ Data variables:
 ```
 
 ### Stats
-`xarray-einstats` provides two wrapper classes {class}`xarray_einstats.XrContinuousRV`
-and {class}`xarray_einstats.XrDiscreteRV` that can be used to wrap any distribution
-in {mod}`scipy.stats` so they accept {class}`~xarray.DataArray` as inputs.
+{mod}`xarray_einstats.stats` provides two wrapper classes {class}`xarray_einstats.stats.XrContinuousRV`
+and {class}`xarray_einstats.stats.XrDiscreteRV` that can be used to wrap any distribution
+in {mod}`scipy.stats` so they accept {class}`~xarray.DataArray` as inputs,
+and some wrappers for other functions in the `scipy.stats` module
+so you can use `dims` (supporting both string and iterable of strings)
+instead of `axis` and keep the labels from the input DataArrays.
 
-We can evaluate the logpdf using inputs that wouldn't align if using numpy
+The distribution wrappers perform broadcasting and alignment of
+all the inputs automatically.
+You can evaluate the logpdf using inputs that wouldn't align if using numpy
 in a couple lines:
 
 ```python
-norm_dist = xarray_einstats.XrContinuousRV(scipy.stats.norm)
+norm_dist = xarray_einstats.stats.XrContinuousRV(scipy.stats.norm)
+#   shapes:         (50,)     (4, 500, 6)     (500,)
 norm_dist.logpdf(ds["x_plot"], ds["atts"], ds["sd_att"])
 ```
 
@@ -93,53 +99,61 @@ Dimensions without coordinates: dim_plot
 Einstein notation to specify operations on multidimensional arrays.
 It uses spaces as a delimiter between dimensions, parenthesis to
 indicate splitting or stacking of dimensions and `->` to separate
-between input and output dim specification. `einstats` uses
-an adapted notation then translates to einops and calls {func}`xarray.apply_ufunc`
-under the hood.
+between input and output dim specification.
 
-Why change the notation? There are three main reasons, each concerning one
-of the elements respectively: `->`, space as delimiter and parenthesis:
-* In xarray dimensions are already labeled. In many cases, the left
-  side in the einops notation is only used to label the dimensions.
-  In fact, 5/7 examples in https://einops.rocks/api/rearrange/ fall in this category.
-  This is not necessary when working with xarray objects.
-* In xarray dimension names can be any {term}`hashable <xarray:name>`. `xarray-einstats` only
-  supports strings as dimension names, but the space can't be used as delimiter.
-* In xarray dimensions are labeled and the order doesn't matter.
-  This might seem the same as the first reason but it is not. When splitting
-  or stacking dimensions you need (and want) the names of both parent and children dimensions.
-  In some cases, for example stacking, we can autogenerate a default name, but
-  in general you'll want to give a name to the new dimension. After all,
-  dimension order in xarray doesn't matter and there isn't much to be done without knowing
-  the dimension names.
+{mod}`xarray_einstats.einops` uses an adapted notation to take advantage of xarray,
+where dimensions are already labeled,
+and adapts to dimension names with spaces or parenthesis in them.
+It then translates the expression and calls einops via {func}`xarray.apply_ufunc`
+so you need to have einops installed for the functions in this
+module to work.
 
-:::{attention}
-We also provide some cruder wrappers with syntax closer to einops.
-We are experimenting on trying to find the right spot between being clear,
-semantic and flexible yet concise.
+`xarray_einstats` uses two separate arguments, one for the input pattern (optional) and
+another for the output pattern. Each is a list of dimensions (strings)
+or dimension  (lists or dictionaries).
 
-These `raw_` wrappers like {func}`xarray_einstats.einops.raw_rearrange`
-impose several extra constraints to accepted xarray inputs, in addition
-to dimension names being strings.
-
-The example data we are using on this page uses single word alphabetical
-dimensions names which allows us to demonstrate both side by side.
+:::{tip}
+If you are willing to impose some extra constraints to your dimension names,
+you can also use the `raw_` einops wrappers, with a syntax more concise and
+much closer to the einops library.
 :::
 
-`xarray-einstats` uses two separate arguments, one for the input pattern (optional) and
-another for the output pattern. Each is a list of dimensions (strings)
-or dimension operations (lists or dictionaries). Some examples:
+**Combine the chain and draw dimensions**
+
+::::{tab-set}
+:::{tab-item} rearrange
+:sync: full
 
 We can combine the chain and draw dimensions and name the resulting dimension `sample`
-using a list with a single dictionary. The `team` dimension is not present in the pattern
-and is not modified.
+using a list with a single dictionary.
 
 ```python
 rearrange(ds.atts, [{"sample": ("chain", "draw")}])
+```
+:::
+:::{tab-item} raw_rearrange
+:sync: raw
+
+As you would do in einops, we indicate we want to combine the chain and draw dimensions
+by putting the two inside a parenthesis. With `xarray_einstats` in addition,
+you can add an `=new_name` to label this combined dimension, otherwise it gets
+a default name.
+
+Moreover, as dimensions are already labeled in the input, we can skip the
+left side of the expression. If no `->` symbol is present in the pattern,
+`xarray_einstats` generates the left side automatically.
+
+```python
 raw_rearrange(ds.atts, "(chain draw)=sample")
 ```
+:::
+::::
 
-Out:
+The `team` dimension is not present in the pattern and is not modified.
+As here dimensions are named already in the input object, we don't need
+ellipsis nor adding dimensions in both input and output to indicate they
+are left as is. You can see how the team dimension has not been modified
+in the output below:
 
 ```none
 <xarray.DataArray 'atts' (team: 6, sample: 2000)>
@@ -158,10 +172,20 @@ are moved to the end. This only matters when you access the underlying array wit
 or `.data` and you can always transpose using {meth}`xarray.Dataset.transpose`, but
 it can matter. You can change the pattern to enforce the output dimension order:
 
+::::{tab-set}
+:::{tab-item} rearrange
+:sync: full
 ```python
 rearrange(ds.atts, [{"sample": ("chain", "draw")}, "team"])
+```
+:::
+:::{tab-item} raw_rearrange
+:sync: raw
+```python
 raw_rearrange(ds.atts, "(chain draw)=sample team")
 ```
+:::
+::::
 
 Out:
 
@@ -177,13 +201,22 @@ Coordinates:
 Dimensions without coordinates: sample
 ```
 
-Now to a more complicated pattern. We will split the chain and draw dimension,
+**Decompose and combine two dimensions in a different order**
+
+Now to a more complicated pattern. We will split the chain and team dimension,
 then combine those split dimensions between them.
+
+::::{tab-set}
+:::{tab-item} rearrange
+:sync: full
+
+Use a list of dictionaries to choose which dimensions to decompose,
+note that lists with dimensions to decompose are not valid, you
+_need_ to indicate which dimension is the one to be decomposed.
 
 ```python
 rearrange(
     ds.atts,
-    # use dicts to specify which dimensions to split, here we *need* to use a dict
     in_dims=[{"chain": ("chain1", "chain2")}, {"team": ("team1", "team2")}],
     # combine split chain and team dims between them
     # here we don't use a dict so the new dimensions get a default name
@@ -191,12 +224,24 @@ rearrange(
     # set the lengths of split dimensions as kwargs
     chain1=2, chain2=2, team1=2, team2=3
 )
+```
+:::
+:::{tab-item} raw_rearrange
+:sync: raw
+
+We use `()=` on the left side because we _need_ to indicate which dimensions
+to decompose, but we can skip it if we want on the right side and `xarray_einstats`
+uses a default name for them.
+```python
 raw_rearrange(
     ds.atts,
     "(chain1 chain2)=chain (team1 team2)=team -> (chain1 team1) (team2 chain2)",
+    # set the lengths of split dimensions as kwargs
     chain1=2, chain2=2, team1=2, team2=3
 )
 ```
+:::
+::::
 
 Out:
 
@@ -212,15 +257,13 @@ Coordinates:
 Dimensions without coordinates: chain1,team1, team2,chain2
 ```
 
-More einops examples at {ref}`einops-tutorial`
+More einops examples with both `rearrange` and `reduce` at {ref}`einops-tutorial`
 
 ### Linear Algebra
 
-**Still missing in the package**
-
 There is no one size fits all solution, but knowing the function
 we are wrapping we can easily make the code more concise and clear.
-Without `xarray-einstats`, to invert a batch of matrices stored in a 4d
+Without `xarray_einstats`, to invert a batch of matrices stored in a 4d
 array you have to do:
 
 ```python
@@ -242,14 +285,21 @@ norm = xarray.apply_ufunc(  # output is a 2d labeled array
 )
 ```
 
-With `xarray-einstats`, those operations become:
+With {mod}`xarray_einstats.linalg`, those operations become:
 
 ```python
 inv = xarray_einstats.inv(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
 norm = xarray_einstats.norm(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
 ```
 
+Moreover, if you use some internal conventions to label the dimensions
+that correspond to matrices, so that they can always be identified
+if given the list of all dimensions in the input, you can configure
+`xarray_einstats` to follow that convention.
+Take a look at {func}`~xarray_einstats.linalg.get_default_dims`
 
+And if you still need more reasons for `xarray_einstats`, to complement
+the `einops` wrappers, it also provides {func}`xarray_einstats.einsum`!
 
 ## Similar projects
 Here we list some similar projects we know of. Note that all of

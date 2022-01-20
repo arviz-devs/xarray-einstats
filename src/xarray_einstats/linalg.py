@@ -17,7 +17,7 @@ def get_default_dims(da1_dims, d2_dims=None):
     da1_dims : list of str
 
     da2_dims : list of str, optional
-        Used
+        Used only in case of multiple inputs, otherwise it will keep its default value of ``None``
 
     Returns
     -------
@@ -30,6 +30,52 @@ def get_default_dims(da1_dims, d2_dims=None):
     ``dims`` is required for functions in the linalg module.
     This function acts as a placeholder and only raises an error indicating
     that dims is a required argument unless this function is monkeypatched.
+
+    It is documented here to show how to write and configure a substitute function.
+
+    Examples
+    --------
+    The ``xarray_einstats`` default behaviour is requiring the `dims` argument
+    for functions in the linalg module. Not providing it raises a `TypeError`
+
+    .. jupyter-execute::
+        :raises: TypeError
+
+        from xarray_einstats import linalg, tutorial
+        da = tutorial.generate_matrices_dataarray(5)
+        linalg.inv(da)
+
+    You need to pass the dimensions corresponding the matrix axes explicitly
+
+    .. jupyter-execute::
+
+        linalg.inv(da, dims=["dim", "dim2"])
+
+    However, in many cases it will be possible to identify those dimensions
+    from the list of all dimension names in the input.
+
+    Here we show how to monkeypatch ``get_default_dims`` to get a different default
+    behaviour. If you follow a convention to label the dimensions corresponding
+    to the matrix axes, you can integrate this logic into ``xarray_einstats``,
+    which will avoid unnecessary repetition, especially if performing several
+    chained linear algebra operations:
+
+    .. jupyter-execute::
+
+        def get_default_dims(dims1, dims2):
+            if dims2 is not None:
+                raise TypeError("Default dims only valid for single input functions")
+            matrix_dims = [dim for dim in dims1 if f"{dim}2" in dims1]
+            if len(matrix_dims) != 1:
+                raise TypeError("Unable to guess default matrix dims")
+            dim = matrix_dims[0]
+            return [dim, f"{dim}2"]
+
+        linalg.get_default_dims = get_default_dims
+        linalg.inv(da)
+
+    You can still use ``dims`` explicitly to override those defaults.
+
     """
     raise MissingMonkeypatchError()
 

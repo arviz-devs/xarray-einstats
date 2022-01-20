@@ -52,13 +52,8 @@ def get_default_dims(dims):
 
     .. jupyter-execute::
 
-        from xarray_einstats import stats
-        import xarray as xr; import numpy as np
-        rng = np.random.default_rng(3)
-        da = xr.DataArray(
-            rng.exponential(size=(4, 10, 6)),
-            dims=["chain", "draw", "team"]
-        )
+        from xarray_einstats import stats, tutorial
+        da = tutorial.generate_mcmc_like_dataset(3)["mu"]
         stats.hmean(da)
 
     Here we show how to monkeypatch ``get_default_dims`` to get a different default
