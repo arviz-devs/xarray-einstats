@@ -9,6 +9,7 @@ installation
 tutorials/index
 api/index
 background/index
+changelog
 :::
 
 ```{toctree}

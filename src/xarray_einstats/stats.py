@@ -1,17 +1,5 @@
 # pylint: disable=too-few-public-methods
-"""Wrappers for :mod:`scipy.stats` distributions.
-
-.. note::
-
-    These wrapper classes set some defaults and ensure
-    proper alignment and broadcasting of all inputs, but
-    use :func:`xarray.apply_ufunc` under the hood.
-    This means that while using kwargs for distribution
-    parameters is supported, using positional arguments
-    is recommended. In fact, if no positional arguments
-    are present, automatic broadcasting will still work
-    but the output will be a numpy array.
-"""
+"""Wrappers for :mod:`scipy.stats` distributions."""
 
 from collections.abc import Sequence
 
@@ -206,6 +194,21 @@ class XrContinuousRV(XrRV):
     See Also
     --------
     xarray_einstats.stats.XrDiscreteRV
+
+    Examples
+    --------
+    Evaluate the ppf of a Student-T distribution from DataArrays that need
+    broadcasting:
+
+    .. jupyter-execute::
+
+        from xarray_einstats import tutorial
+        from xarray_einstats.stats import XrContinuousRV
+        from scipy import stats
+        ds = tutorial.generate_mcmc_like_dataset(3)
+        dist = XrContinuousRV(stats.t, 3, ds["mu"], ds["sigma"])
+        dist.ppf([.1, .5, .6])
+
     """
 
 
@@ -247,6 +250,8 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
     """Help wrap functions with a single input that return an output with the same size."""
     unstack = False
 
+    if dims is None:
+        dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         da = da.stack(__aux_dim__=dims)
         core_dims = ["__aux_dim__"]
@@ -267,6 +272,8 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
 
 
 def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
+    if dims is None:
+        dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         da = da.stack(__aux_dim__=dims)
         core_dims = ["__aux_dim__"]
@@ -283,8 +290,6 @@ def rankdata(da, dims=None, method=None, **kwargs):
     rank_kwargs = {"axis": -1}
     if method is not None:
         rank_kwargs["method"] = method
-    if dims is None:
-        dims = get_default_dims(da.dims)
     return _apply_nonreduce_func(stats.rankdata, da, dims, kwargs, rank_kwargs)
 
 
@@ -295,8 +300,6 @@ def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
         gmean_kwargs["dtype"] = dtype
     if weights is not None:
         gmean_kwargs["weights"] = weights
-    if dims is None:
-        dims = get_default_dims(da.dims)
     return _apply_reduce_func(stats.gmean, da, dims, kwargs, gmean_kwargs)
 
 
@@ -305,6 +308,25 @@ def hmean(da, dims=None, dtype=None, **kwargs):
     hmean_kwargs = {"axis": -1}
     if dtype is not None:
         hmean_kwargs["dtype"] = dtype
-    if dims is None:
-        dims = get_default_dims(da.dims)
     return _apply_reduce_func(stats.hmean, da, dims, kwargs, hmean_kwargs)
+
+def circmean(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circmean`."""
+    circmean_kwargs = dict(axis=-1, high=high, low=low)
+    if nan_policy is not None:
+        circmean_kwargs["nan_policy"] = nan_policy
+    return _apply_reduce_func(stats.circmean, da, dims, kwargs, circmean_kwargs)
+
+def circvar(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circvar`."""
+    circvar_kwargs = dict(axis=-1, high=high, low=low)
+    if nan_policy is not None:
+        circvar_kwargs["nan_policy"] = nan_policy
+    return _apply_reduce_func(stats.circvar, da, dims, kwargs, circvar_kwargs)
+
+def circstd(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circstd`."""
+    circstd_kwargs = dict(axis=-1, high=high, low=low)
+    if nan_policy is not None:
+        circstd_kwargs["nan_policy"] = nan_policy
+    return _apply_reduce_func(stats.circstd, da, dims, kwargs, circstd_kwargs)

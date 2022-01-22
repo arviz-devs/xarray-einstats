@@ -3,6 +3,7 @@ import os
 import pathlib
 from importlib.metadata import metadata
 
+
 # import local version of library instead of installed one
 sys.path.insert(0, str(pathlib.Path(__file__).parent.resolve().parent.parent / "src"))
 
@@ -55,6 +56,11 @@ default_role = "code"
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
+
+extlinks = {
+    "issue": ("https://github.com/arviz-devs/xarray-einstats/issues/%s", "GH"),
+    "pull": ("https://github.com/arviz-devs/xarray-einstats/pull/%s", "PR"),
+}
 
 # -- Options for extensions
 

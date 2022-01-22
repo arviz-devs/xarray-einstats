@@ -4,6 +4,18 @@
 ```
 
 ## Probability distributions
+
+:::{note}
+These wrapper classes set some defaults and ensure
+proper alignment and broadcasting of all inputs, but
+use {func}`xarray.apply_ufunc` under the hood.
+This means that while using kwargs for distribution
+parameters is supported, using positional arguments
+is recommended. In fact, if no positional arguments
+are present, automatic broadcasting will still work
+but the output will be a numpy array.
+:::
+
 ```{eval-rst}
 .. autosummary::
   :toctree: generated/
@@ -19,6 +31,9 @@
 
   gmean
   hmean
+  circmean
+  circvar
+  circstd
 ```
 
 ## Other statistical functions

@@ -103,7 +103,6 @@ class PairHandler:
         self.dim_map = {d: self.einsum_axes.pop() for d in all_dims}
         self.out_dims = []
         self.out_subscript = ""
-        self.ellipsis = False
 
     def process_dim_da_pair(self, da, dim_sublist):
         da_dims = da.dims
@@ -121,15 +120,12 @@ class PairHandler:
         for dim in dim_sublist:
             subscripts += self.dim_map[dim]
         if len(da_dims) > len(out_dims) + len(dim_sublist):
-            self.ellipsis = True
             return f"...{subscripts}", updated_in_dims
         return subscripts, updated_in_dims
 
     def get_out_subscript(self):
         if not self.out_subscript:
             return ""
-        if self.ellipsis:
-            return f"->...{self.out_subscript}"
         return f"->{self.out_subscript}"
 
 
@@ -175,6 +171,7 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
         in_subscripts.append(in_subs)
         updated_in_dims.append(up_dims)
 
+    in_subscript = ",".join(in_subscripts)
     if out_dims is None:
         out_subscript = handler.get_out_subscript()
         out_dims = handler.out_dims
@@ -182,7 +179,9 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
         out_subscript = "->"
     else:
         out_subscript = "->" + "".join(handler.dim_map[dim] for dim in out_dims)
-    subscripts = ",".join(in_subscripts) + out_subscript
+    if (out_subscript and "..." in in_subscript):
+        out_subscript = "->..." + out_subscript[2:]
+    subscripts = in_subscript + out_subscript
     return subscripts, updated_in_dims, out_dims
 
 
@@ -511,7 +510,7 @@ def slogdet(da, dims=None, **kwargs):
     )
 
 
-def trace(da, dims=None, offset=None, dtype=None, out=None, **kwargs):
+def trace(da, dims=None, offset=0, dtype=None, out=None, **kwargs):
     """Wrap :func:`numpy.trace`."""
     if dims is None:
         dims = _attempt_default_dims("trace", da.dims)

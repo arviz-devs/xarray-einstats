@@ -71,3 +71,12 @@ Runs test suite with pytest
   translate_pattern
 ```
 
+### Tutorial
+```{eval-rst}
+.. automodule:: xarray_einstats.tutorial
+.. autosummary::
+  :toctree: generated
+
+  generate_mcmc_like_dataset
+  generate_matrices_dataarray
+```

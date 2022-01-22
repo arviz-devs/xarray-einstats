@@ -1,3 +1,4 @@
+/* jupyter sphinx related style */
 div.jupyter_container {
     background-color: var(--color-background-primary);
     border-color: transparent;
@@ -46,4 +47,22 @@ div.cell_output .output.traceback,
 div.cell_output .output.stream,
 div.cell_output .output.stderr {
   background: transparent;
+}
+
+/* xarray related style */
+.jupyter_container .xr-var-attrs,
+.jupyter_container .xr-var-data {
+  background-color: transparent !important;
+}
+
+.jupyter_container .xr-var-item > div,
+.jupyter_container .xr-var-item label,
+.jupyter_container .xr-var-item > .xr-var-name span {
+  background-color: transparent;
+}
+
+.jupyter_container .xr-var-list > li:nth-child(odd) > div,
+.jupyter_container .xr-var-list > li:nth-child(odd) > label,
+.jupyter_container .xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: transparent;
 }
