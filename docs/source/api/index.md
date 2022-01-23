@@ -14,4 +14,5 @@ module. Each module explains its optional dependencies
 stats
 linalg
 einops
+numba
 :::

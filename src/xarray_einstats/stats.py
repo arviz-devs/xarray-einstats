@@ -196,16 +196,10 @@ class XrRV:
         )
 
 
-setattr(XrRV, "cdf", _wrap_method("cdf"))
-setattr(XrRV, "logcdf", _wrap_method("logcdf"))
-setattr(XrRV, "sf", _wrap_method("sf"))
-setattr(XrRV, "logsf", _wrap_method("logsf"))
-setattr(XrRV, "ppf", _wrap_method("ppf"))
-setattr(XrRV, "isf", _wrap_method("isf"))
-
-
 class XrContinuousRV(XrRV):
     """Wrapper for subclasses of :class:`~scipy.stats.rv_continuous`.
+
+    Usage examples available at :ref:`stats_tutorial`
 
     See Also
     --------
@@ -228,30 +222,44 @@ class XrContinuousRV(XrRV):
     """
 
 
-setattr(XrContinuousRV, "pdf", _wrap_method("pdf"))
-setattr(XrContinuousRV, "logpdf", _wrap_method("logpdf"))
-
-
 class XrDiscreteRV(XrRV):
     """Wrapper for subclasses of :class:`~scipy.stats.rv_discrete`.
+
+    Usage examples available at :ref:`stats_tutorial`
 
     See Also
     --------
     xarray_einstats.stats.XrDiscreteRV
+
+    Examples
+    --------
+    Evaluate the ppf of a Student-T distribution from DataArrays that need
+    broadcasting:
+
+    .. jupyter-execute::
+
+        from xarray_einstats import tutorial
+        from xarray_einstats.stats import XrDiscreteRV
+        from scipy import stats
+        ds = tutorial.generate_mcmc_like_dataset(3)
+        dist = XrDiscreteRV(stats.poisson, ds["mu"])
+        dist.ppf([.1, .5, .6])
+
     """
 
 
-setattr(XrDiscreteRV, "pmf", _wrap_method("pmf"))
-setattr(XrDiscreteRV, "logpmf", _wrap_method("logpmf"))
-
-
-def _add_docstrings(cls, wrapped_cls, methods, extra_docs=None):
-    """Add one line docstrings to wrapper classes."""
+def _add_documented_method(cls, wrapped_cls, methods, extra_docs=None):
+    """Register methods to XrRV classes and document them from a template."""
     if extra_docs is None:
         extra_docs = {}
     for method_name in methods:
         extra_doc = extra_docs.get(method_name, "")
-        method = getattr(cls, method_name)
+        if method_name == "rvs":
+            if wrapped_cls == "rv_generic":
+                continue
+            method = cls.rvs
+        else:
+            method = _wrap_method(method_name)
         setattr(
             method,
             "__doc__",
@@ -259,16 +267,17 @@ def _add_docstrings(cls, wrapped_cls, methods, extra_docs=None):
             "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
             f":ref:`stats_tutorial/dists`.\n\n{extra_doc}",
         )
+        setattr(cls, method_name, method)
 
 
 doc_extras = dict(
     rvs="""
 Parameters
 ----------
-*args : scalar or array_like
+args : scalar or array_like, optional
     Passed to the scipy distribution after broadcasting.
 size : int of sequence of ints, optional
-    The number of samples to draw _per array element_. If the distribution
+    The number of samples to draw *per array element*. If the distribution
     parameters broadcast to a ``(4, 10, 6)`` shape and ``size=(5, 3)`` then
     the output shape is ``(5, 3, 4, 10, 6)``. This differs from the scipy
     implementation. Here, all broadcasting and alignment is done for you,
@@ -283,11 +292,16 @@ dims : sequence of str, optional
     it must have the same length as ``size``.
 apply_kwargs : dict, optional
     Passed to :func:`xarray.apply_ufunc`
+kwargs : dict, optional
+    Passed to the scipy distribution after broadcasting using the same key.
 """
 )
 base_methods = ["cdf", "logcdf", "sf", "logsf", "ppf", "isf", "rvs"]
-_add_docstrings(XrContinuousRV, "rv_continuous", base_methods + ["pdf", "logpdf"], doc_extras)
-_add_docstrings(XrDiscreteRV, "rv_discrete", base_methods + ["pmf", "logpmf"], doc_extras)
+_add_documented_method(XrRV, "rv_generic", base_methods, doc_extras)
+_add_documented_method(
+    XrContinuousRV, "rv_continuous", base_methods + ["pdf", "logpdf"], doc_extras
+)
+_add_documented_method(XrDiscreteRV, "rv_discrete", base_methods + ["pmf", "logpmf"], doc_extras)
 
 
 def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):

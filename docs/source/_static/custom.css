@@ -50,19 +50,19 @@ div.cell_output .output.stderr {
 }
 
 /* xarray related style */
-.jupyter_container .xr-var-attrs,
-.jupyter_container .xr-var-data {
+.cell_output .xr-var-attrs,
+.cell_output .xr-var-data {
   background-color: transparent !important;
 }
 
-.jupyter_container .xr-var-item > div,
-.jupyter_container .xr-var-item label,
-.jupyter_container .xr-var-item > .xr-var-name span {
+.cell_output .xr-var-item > div,
+.cell_output .xr-var-item label,
+.cell_output .xr-var-item > .xr-var-name span {
   background-color: transparent;
 }
 
-.jupyter_container .xr-var-list > li:nth-child(odd) > div,
-.jupyter_container .xr-var-list > li:nth-child(odd) > label,
-.jupyter_container .xr-var-list > li:nth-child(odd) > .xr-var-name span {
+.cell_output .xr-var-list > li:nth-child(odd) > div,
+.cell_output .xr-var-list > li:nth-child(odd) > label,
+.cell_output .xr-var-list > li:nth-child(odd) > .xr-var-name span {
   background-color: transparent;
 }

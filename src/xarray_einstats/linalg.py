@@ -257,13 +257,14 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
         DataArrays for the operation. Multiple DataArrays are accepted.
     keep_dims : set, optional
         Dimensions to exclude from summation unless specifically specified in ``dims``
-    out_append : str, default "{i}"
+    out_append : str, optional
         Pattern to append to repeated dimension names in the output (if any). The pattern should
         contain a substitution for variable ``i``, which indicates the number of the current
-        dimension among the repeated ones. To keep repeated dimension names use ``""``.
+        dimension among the repeated ones. Its default value is ``"{i}"``.
+        To keep repeated dimension names use ``""``.
 
-        The first occurrence will keep the original name and will therefore inherit the
-        coordinate values in case there are any.
+        The first occurrence will keep the original name and not use ``out_append``.
+        It will therefore inherit the coordinate values in case there were any.
     einsum_kwargs : dict, optional
         Passed to :func:`numpy.einsum`
     kwargs : dict, optional
@@ -562,21 +563,30 @@ def norm(da, dims=None, ord=None, **kwargs):  # pylint: disable=redefined-builti
 
 
 def cond(da, dims=None, p=None, **kwargs):  # pylint: disable=invalid-name
-    """Wrap :func:`numpy.linalg.cond`."""
+    """Wrap :func:`numpy.linalg.cond`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("cond", da.dims)
     return xr.apply_ufunc(np.linalg.cond, da, input_core_dims=[dims], kwargs=dict(p=p), **kwargs)
 
 
 def det(da, dims=None, **kwargs):
-    """Wrap :func:`numpy.linalg.det`."""
+    """Wrap :func:`numpy.linalg.det`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("det", da.dims)
     return xr.apply_ufunc(np.linalg.det, da, input_core_dims=[dims], **kwargs)
 
 
 def matrix_rank(da, dims=None, tol=None, hermitian=False, **kwargs):
-    """Wrap :func:`numpy.linalg.matrix_rank`."""
+    """Wrap :func:`numpy.linalg.matrix_rank`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("matrix_rank", da.dims)
     return xr.apply_ufunc(
@@ -589,7 +599,10 @@ def matrix_rank(da, dims=None, tol=None, hermitian=False, **kwargs):
 
 
 def slogdet(da, dims=None, **kwargs):
-    """Wrap :func:`numpy.linalg.slogdet`."""
+    """Wrap :func:`numpy.linalg.slogdet`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("slogdet", da.dims)
     return xr.apply_ufunc(
@@ -598,7 +611,10 @@ def slogdet(da, dims=None, **kwargs):
 
 
 def trace(da, dims=None, offset=0, dtype=None, out=None, **kwargs):
-    """Wrap :func:`numpy.trace`."""
+    """Wrap :func:`numpy.trace`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("trace", da.dims)
     trace_kwargs = dict(offset=offset, dtype=dtype, out=out, axis1=-2, axis2=-1)
@@ -608,7 +624,7 @@ def trace(da, dims=None, offset=0, dtype=None, out=None, **kwargs):
 def solve(da, db, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.solve`.
 
-    Here dims can be of length 3 to indicate
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
     """
     if dims is None:
         dims = _attempt_default_dims("solve", da.dims, db.dims)
@@ -625,7 +641,10 @@ def solve(da, db, dims=None, **kwargs):
 
 
 def inv(da, dims=None, **kwargs):
-    """Wrap :func:`numpy.linalg.inv`."""
+    """Wrap :func:`numpy.linalg.inv`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("inv", da.dims)
     return xr.apply_ufunc(

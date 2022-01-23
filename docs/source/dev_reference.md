@@ -44,7 +44,7 @@ Runs test suite with pytest
 
 
   _wrap_method
-  _add_docstrings
+  _add_documented_method
   XrRV
   _apply_nonreduce_func
   _apply_reduce_func

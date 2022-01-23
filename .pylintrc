@@ -66,7 +66,8 @@ disable=missing-docstring,
         ungrouped-imports,
         not-an-iterable,
         no-member,
-        import-error
+        import-error,
+        fixme
 
 
 # Enable the message, report, category or checker with the given id(s). You can

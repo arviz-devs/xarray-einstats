@@ -70,6 +70,9 @@ myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "amsmath"]
 
 autosummary_generate = True
 autodoc_typehints = "none"
+autodoc_default_options = {
+    "members": False,
+}
 
 numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {"of", "or", "optional", "scalar"}
@@ -78,7 +81,7 @@ numpydoc_xref_aliases = {
     "DataArray": ":class:`xarray.DataArray`",
     "pattern_list": "list of str, list or dict",
     "DimHandler": ":class:`~xarray_einstats.einops.DimHandler`",
-    **{f"{singular}s": f":any`{singular}s <{singular}>`" for singular in singulars}
+    **{f"{singular}s": f":any:`{singular}s <{singular}>`" for singular in singulars},
 }
 
 
@@ -101,6 +104,7 @@ html_theme_options = {
 intersphinx_mapping = {
     "arviz": ("https://arviz-devs.github.io/arviz", None),
     "dask": ("https://docs.dask.org/en/latest/", None),
+    "numba": ("https://numba.pydata.org/numba-doc/dev", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),

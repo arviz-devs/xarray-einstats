@@ -87,7 +87,7 @@ More details about the design decisions and implementation details
 of each module can be found in their specific "About ..." pages:
 
 :::{toctree}
-linalg
 stats
+linalg
 einops
 :::

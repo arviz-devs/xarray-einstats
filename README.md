@@ -92,6 +92,52 @@ Coordinates:
 Dimensions without coordinates: dim_plot
 ```
 
+More examples available at {ref}`stats_tutorial`.
+
+### Linear Algebra
+
+There is no one size fits all solution, but knowing the function
+we are wrapping we can easily make the code more concise and clear.
+Without `xarray_einstats`, to invert a batch of matrices stored in a 4d
+array you have to do:
+
+```python
+inv = xarray.apply_ufunc(   # output is a 4d labeled array
+    numpy.linalg.inv,
+    batch_of_matrices,      # input is a 4d labeled array
+    input_core_dims=[["matrix_dim", "matrix_dim_bis"]],
+    output_core_dims=[["matrix_dim", "matrix_dim_bis"]]
+)
+```
+
+to calculate it's norm instead, it becomes:
+
+```python
+norm = xarray.apply_ufunc(  # output is a 2d labeled array
+    numpy.linalg.norm,
+    batch_of_matrices,      # input is a 4d labeled array
+    input_core_dims=[["matrix_dim", "matrix_dim_bis"]],
+)
+```
+
+With {mod}`xarray_einstats.linalg`, those operations become:
+
+```python
+inv = xarray_einstats.inv(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
+norm = xarray_einstats.norm(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
+```
+
+Moreover, if you use some internal conventions to label the dimensions
+that correspond to matrices, so that they can always be identified
+if given the list of all dimensions in the input, you can configure
+`xarray_einstats` to follow that convention.
+Take a look at {func}`~xarray_einstats.linalg.get_default_dims`
+
+And if you still need more reasons for `xarray_einstats`, to complement
+the `einops` wrappers, it also provides {func}`xarray_einstats.einsum`!
+
+More examples available, also using `einsum` at {ref}`stats_tutorial`.
+
 ### einops
 **repeat wrapper still missing**
 
@@ -257,49 +303,8 @@ Coordinates:
 Dimensions without coordinates: chain1,team1, team2,chain2
 ```
 
-More einops examples with both `rearrange` and `reduce` at {ref}`einops-tutorial`
+More einops examples with both `rearrange` and `reduce` at {ref}`einops_tutorial`
 
-### Linear Algebra
-
-There is no one size fits all solution, but knowing the function
-we are wrapping we can easily make the code more concise and clear.
-Without `xarray_einstats`, to invert a batch of matrices stored in a 4d
-array you have to do:
-
-```python
-inv = xarray.apply_ufunc(   # output is a 4d labeled array
-    numpy.linalg.inv,
-    batch_of_matrices,      # input is a 4d labeled array
-    input_core_dims=[["matrix_dim", "matrix_dim_bis"]],
-    output_core_dims=[["matrix_dim", "matrix_dim_bis"]]
-)
-```
-
-to calculate it's norm instead, it becomes:
-
-```python
-norm = xarray.apply_ufunc(  # output is a 2d labeled array
-    numpy.linalg.norm,
-    batch_of_matrices,      # input is a 4d labeled array
-    input_core_dims=[["matrix_dim", "matrix_dim_bis"]],
-)
-```
-
-With {mod}`xarray_einstats.linalg`, those operations become:
-
-```python
-inv = xarray_einstats.inv(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
-norm = xarray_einstats.norm(batch_of_matrices, dim=("matrix_dim", "matrix_dim_bis"))
-```
-
-Moreover, if you use some internal conventions to label the dimensions
-that correspond to matrices, so that they can always be identified
-if given the list of all dimensions in the input, you can configure
-`xarray_einstats` to follow that convention.
-Take a look at {func}`~xarray_einstats.linalg.get_default_dims`
-
-And if you still need more reasons for `xarray_einstats`, to complement
-the `einops` wrappers, it also provides {func}`xarray_einstats.einsum`!
 
 ## Similar projects
 Here we list some similar projects we know of. Note that all of
