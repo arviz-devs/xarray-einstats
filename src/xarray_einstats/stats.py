@@ -7,7 +7,16 @@ import numpy as np
 import xarray as xr
 from scipy import stats
 
-__all__ = ["XrContinuousRV", "XrDiscreteRV", "rankdata", "gmean", "hmean"]
+__all__ = [
+    "XrContinuousRV",
+    "XrDiscreteRV",
+    "rankdata",
+    "gmean",
+    "hmean",
+    "circmean",
+    "circvar",
+    "circstd",
+]
 
 
 def get_default_dims(dims):
@@ -69,19 +78,22 @@ def get_default_dims(dims):
 
 
 def _wrap_method(method):
-    def aux(self, *args, **kwargs):
+    def aux(self, *args, apply_kwargs=None, **kwargs):
+        if apply_kwargs is None:
+            apply_kwargs = {}
+        meth = getattr(self.dist, method)
         if args:
             x_or_q = args[0]
+            dim_name = "quantile" if method in {"ppf", "isf"} else "point"
             if not isinstance(x_or_q, xr.DataArray):
                 x_or_q = xr.DataArray(
                     np.asarray(x_or_q),
-                    dims=["quantile"],
-                    coords={"quantile": np.asarray(x_or_q)},
+                    dims=[dim_name],
+                    coords={dim_name: np.asarray(x_or_q)},
                 )
                 args = (x_or_q, *args[1:])
         args, kwargs = self._broadcast_args(args, kwargs)  # pylint: disable=protected-access
-        meth = getattr(self.dist, method)
-        return xr.apply_ufunc(meth, *args, kwargs=kwargs)
+        return xr.apply_ufunc(meth, *args, kwargs=kwargs, **apply_kwargs)
 
     return aux
 
@@ -108,8 +120,8 @@ class XrRV:
         self.kwargs = kwargs
 
     def _broadcast_args(self, args, kwargs):
-        len_args = len(self.args) + len(args)
-        all_args = [*self.args, *args, *self.kwargs.values(), *kwargs.values()]
+        len_args = len(args) + len(self.args)
+        all_args = [*args, *self.args, *kwargs.values(), *self.kwargs.values()]
         broadcastable = []
         non_broadcastable = []
         b_idx = []
@@ -129,12 +141,12 @@ class XrRV:
                 key=lambda pair: pair[1],
             )
         ]
-        all_keys = list(self.kwargs.keys()) + list(kwargs.keys())
+        all_keys = list(kwargs.keys()) + list(self.kwargs.keys())
         args = all_args[:len_args]
         kwargs = dict(zip(all_keys, all_args[len_args:]))
         return args, kwargs
 
-    def rvs(self, *args, size=1, random_state=None, dims=None, **kwargs):
+    def rvs(self, *args, size=1, random_state=None, dims=None, apply_kwargs=None, **kwargs):
         """Implement base rvs method.
 
         In scipy, rvs has a common signature that doesn't depend on continuous
@@ -171,12 +183,16 @@ class XrRV:
         if dims is None:
             dims = tuple()
 
+        if apply_kwargs is None:
+            apply_kwargs = {}
+
         return xr.apply_ufunc(
             self.dist.rvs,
             *args,
             kwargs={**kwargs, "size": size, "random_state": random_state},
             input_core_dims=[dims_in for _ in args],
             output_core_dims=[[*dims, *dims_in]],
+            **apply_kwargs,
         )
 
 
@@ -229,21 +245,49 @@ setattr(XrDiscreteRV, "pmf", _wrap_method("pmf"))
 setattr(XrDiscreteRV, "logpmf", _wrap_method("logpmf"))
 
 
-def _add_docstrings(cls, wrapped_cls, methods):
+def _add_docstrings(cls, wrapped_cls, methods, extra_docs=None):
     """Add one line docstrings to wrapper classes."""
+    if extra_docs is None:
+        extra_docs = {}
     for method_name in methods:
+        extra_doc = extra_docs.get(method_name, "")
         method = getattr(cls, method_name)
         setattr(
             method,
             "__doc__",
             f"Method wrapping :meth:`scipy.stats.{wrapped_cls}.{method_name}` "
-            "with :func:`xarray.apply_ufunc`",
+            "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
+            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}",
         )
 
 
+doc_extras = dict(
+    rvs="""
+Parameters
+----------
+*args : scalar or array_like
+    Passed to the scipy distribution after broadcasting.
+size : int of sequence of ints, optional
+    The number of samples to draw _per array element_. If the distribution
+    parameters broadcast to a ``(4, 10, 6)`` shape and ``size=(5, 3)`` then
+    the output shape is ``(5, 3, 4, 10, 6)``. This differs from the scipy
+    implementation. Here, all broadcasting and alignment is done for you,
+    you give the dimensions the right names, and broadcasting just happens.
+    If ``size`` followed scipy behaviour, you'd be forced to broadcast
+    to provide a valid value which would defeat the ``xarray_einstats`` goal
+    of handling all alignment and broadcasting for you.
+random_state : optional
+    Passed as is to the wrapped scipy distribution
+dims : sequence of str, optional
+    Dimension names for the dimensions created due to ``size``. If present
+    it must have the same length as ``size``.
+apply_kwargs : dict, optional
+    Passed to :func:`xarray.apply_ufunc`
+"""
+)
 base_methods = ["cdf", "logcdf", "sf", "logsf", "ppf", "isf", "rvs"]
-_add_docstrings(XrContinuousRV, "rv_continuous", base_methods + ["pdf", "logpdf"])
-_add_docstrings(XrDiscreteRV, "rv_discrete", base_methods + ["pmf", "logpmf"])
+_add_docstrings(XrContinuousRV, "rv_continuous", base_methods + ["pdf", "logpdf"], doc_extras)
+_add_docstrings(XrDiscreteRV, "rv_discrete", base_methods + ["pmf", "logpmf"], doc_extras)
 
 
 def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
@@ -272,6 +316,11 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
 
 
 def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
+    """Help wrap functions with a single input that return an output after reducing some dimensions.
+
+    It assumes that the function to be applied only takes ``int`` as ``axis`` and stacks multiple
+    dimensions if necessary to support reducing multiple dimensions at once.
+    """
     if dims is None:
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
@@ -286,7 +335,14 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
 
 
 def rankdata(da, dims=None, method=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.rankdata`."""
+    """Wrap and extend :func:`scipy.stats.rankdata`.
+
+    Usage examples available at :ref:`stats_tutorial`
+
+    See Also
+    --------
+    xarray.DataArray.rank : Similar function but without a ``method`` argument available.
+    """
     rank_kwargs = {"axis": -1}
     if method is not None:
         rank_kwargs["method"] = method
@@ -294,7 +350,10 @@ def rankdata(da, dims=None, method=None, **kwargs):
 
 
 def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.gmean`."""
+    """Wrap and extend :func:`scipy.stats.gmean`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
     gmean_kwargs = {"axis": -1}
     if dtype is not None:
         gmean_kwargs["dtype"] = dtype
@@ -304,28 +363,43 @@ def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
 
 
 def hmean(da, dims=None, dtype=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.hmean`."""
+    """Wrap and extend :func:`scipy.stats.hmean`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
     hmean_kwargs = {"axis": -1}
     if dtype is not None:
         hmean_kwargs["dtype"] = dtype
     return _apply_reduce_func(stats.hmean, da, dims, kwargs, hmean_kwargs)
 
-def circmean(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.circmean`."""
+
+def circmean(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circmean`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
     circmean_kwargs = dict(axis=-1, high=high, low=low)
     if nan_policy is not None:
         circmean_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circmean, da, dims, kwargs, circmean_kwargs)
 
-def circvar(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.circvar`."""
+
+def circvar(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circvar`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
     circvar_kwargs = dict(axis=-1, high=high, low=low)
     if nan_policy is not None:
         circvar_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circvar, da, dims, kwargs, circvar_kwargs)
 
-def circstd(da, high=2*np.pi, low=0, dims=None, nan_policy=None, **kwargs):
-    """Wrap and extend :func:`scipy.stats.circstd`."""
+
+def circstd(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.circstd`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
     circstd_kwargs = dict(axis=-1, high=high, low=low)
     if nan_policy is not None:
         circstd_kwargs["nan_policy"] = nan_policy

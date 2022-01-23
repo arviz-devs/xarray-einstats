@@ -2,7 +2,24 @@
 import numpy as np
 import xarray as xr
 
-__all__ = ["einsum", "raw_einsum", "einsum_path"]
+__all__ = [
+    "matrix_power",
+    "cholesky",
+    "qr",
+    "svd",
+    "eig",
+    "eigh",
+    "eigvals",
+    "eigvalsh",
+    "norm",
+    "cond",
+    "det",
+    "matrix_rank",
+    "slogdet",
+    "trace",
+    "solve",
+    "inv",
+]
 
 
 class MissingMonkeypatchError(Exception):
@@ -179,7 +196,7 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
         out_subscript = "->"
     else:
         out_subscript = "->" + "".join(handler.dim_map[dim] for dim in out_dims)
-    if (out_subscript and "..." in in_subscript):
+    if out_subscript and "..." in in_subscript:
         out_subscript = "->..." + out_subscript[2:]
     subscripts = in_subscript + out_subscript
     return subscripts, updated_in_dims, out_dims
@@ -223,6 +240,9 @@ def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs)
 def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
     """Preprocess inputs to call :func:`numpy.einsum` or :func:`numpy.einsum_path`.
 
+    Usage examples of all arguments is available at the
+    :ref:`einsum section <linalg_tutorial/einsum>` of the linear algebra module tutorial.
+
     Parameters
     ----------
     dims : list of list of str
@@ -253,6 +273,7 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
     -----
     Dimensions present in ``dims`` will be reduced, but unlike {func}`xarray.dot` it does so only
     for that variable.
+
     """
     if einsum_kwargs is None:
         einsum_kwargs = {}
@@ -282,6 +303,12 @@ def raw_einsum(
 ):
     """Wrap :func:`numpy.einsum` crudely.
 
+    Usage examples of all arguments is available at the
+    :ref:`einsum section <linalg_tutorial/einsum>` of the linear algebra module tutorial.
+
+    The description of all the arguments except `subscripts` is available at
+    :func:`xarray_einstats.einsum`.
+
     Parameters
     ----------
     subscripts : str
@@ -290,7 +317,10 @@ def raw_einsum(
         operands. Only dimensions with no spaces, nor commas nor ``->`` characters
         are valid.
     operands : DataArray
-    ...
+    keep_dims : set, optional
+    out_append : str, optional
+    einsum_kwargs : dict, optional
+    kwargs : optional
     """
     if "->" in subscripts:
         in_subscripts, out_subscript = subscripts.split("->")
@@ -318,10 +348,49 @@ def raw_einsum(
     )
 
 
+def matmul(da, db, dims=None, out_append="2", **kwargs):
+    """Wrap :func:`numpy.linalg.matmul`.
+
+    Usage examples of all arguments is available at the
+    :ref:`matmul section <linalg_tutorial/matmul>` of the linear algebra module tutorial.
+    """
+    if dims is None:
+        dims = _attempt_default_dims("matmul", da.dims, db.dims)
+    if len(dims) == 3:
+        dim1, dim2, dim3 = dims
+        dims1 = [dim1, dim2]
+        dims2 = [dim2, dim3]
+        out_dims = [dim1, dim3]
+        if dim3 in da.dims:
+            da = da.rename({dim3 : dim3+out_append})
+        if dim1 in db.dims:
+            db = db.rename({dim1 : dim1+out_append})
+    elif len(dims) != 2:
+        raise ValueError(
+            "matmul can be one of '[str, str]', '[str, str, str]' or '[[str, str], [str, str]]'"
+        )
+    elif isinstance(dims[0], str):
+        dims1 = dims
+        dims2 = dims
+        out_dims = dims
+    else:
+        dims1 = dims[0]
+        dims2 = dims[1]
+        out_dims = [dims[0][0], dims[1][1]]
+    return xr.apply_ufunc(
+        np.matmul,
+        da,
+        db,
+        input_core_dims=[dims1, dims2],
+        output_core_dims=[out_dims],
+        **kwargs,
+    )
+
+
 def matrix_power(da, n, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.matrix_power`.
 
-    Description of arguments at :ref:`linalg_reference`
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
     """
     if dims is None:
         dims = _attempt_default_dims("matrix_power", da.dims)
@@ -333,7 +402,7 @@ def matrix_power(da, n, dims=None, **kwargs):
 def cholesky(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.cholesky`.
 
-    Description of arguments at :ref:`linalg_reference`
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
     """
     if dims is None:
         dims = _attempt_default_dims("cholesky", da.dims)
@@ -345,7 +414,7 @@ def cholesky(da, dims=None, **kwargs):
 def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.qr`.
 
-    Description of arguments at :ref:`linalg_reference`
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
     """
     if dims is None:
         dims = _attempt_default_dims("qr", da.dims)
@@ -380,7 +449,10 @@ def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pylint: disa
 def svd(
     da, dims=None, full_matrices=True, compute_uv=True, hermitian=False, out_append="2", **kwargs
 ):
-    """Wrap :func:`numpy.linalg.svd`."""
+    """Wrap :func:`numpy.linalg.svd`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("svd", da.dims)
     m_dim, n_dim = dims
@@ -413,7 +485,10 @@ def svd(
 
 
 def eig(da, dims=None, **kwargs):
-    """Wrap :func:`numpy.linalg.eig`."""
+    """Wrap :func:`numpy.linalg.eig`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("eig", da.dims)
     return xr.apply_ufunc(
@@ -422,7 +497,10 @@ def eig(da, dims=None, **kwargs):
 
 
 def eigh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
-    """Wrap :func:`numpy.linalg.eigh`."""
+    """Wrap :func:`numpy.linalg.eigh`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("eigh", da.dims)
     return xr.apply_ufunc(
@@ -436,7 +514,10 @@ def eigh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
 
 
 def eigvals(da, dims=None, **kwargs):
-    """Wrap :func:`numpy.linalg.eigvals`."""
+    """Wrap :func:`numpy.linalg.eigvals`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("eigvals", da.dims)
     return xr.apply_ufunc(
@@ -445,7 +526,10 @@ def eigvals(da, dims=None, **kwargs):
 
 
 def eigvalsh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
-    """Wrap :func:`numpy.linalg.eigvalsh`."""
+    """Wrap :func:`numpy.linalg.eigvalsh`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("eigvalsh", da.dims)
     return xr.apply_ufunc(
@@ -459,7 +543,10 @@ def eigvalsh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
 
 
 def norm(da, dims=None, ord=None, **kwargs):  # pylint: disable=redefined-builtin
-    """Wrap :func:`numpy.linalg.norm`."""
+    """Wrap :func:`numpy.linalg.norm`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
     if dims is None:
         dims = _attempt_default_dims("norm", da.dims)
     norm_kwargs = {"ord": ord}
