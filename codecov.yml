@@ -1,0 +1,22 @@
+ignore:
+    - src/xarray_einstats/tutorial/
+
+codecov:
+    notify:
+        after_n_builds: 4
+
+comment:
+    behavior: default
+    branches:
+        - "main"
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+
+    patch:
+      default:
+        target: 75%
