@@ -362,9 +362,9 @@ def matmul(da, db, dims=None, out_append="2", **kwargs):
         dims2 = [dim2, dim3]
         out_dims = [dim1, dim3]
         if dim3 in da.dims:
-            da = da.rename({dim3 : dim3+out_append})
+            da = da.rename({dim3: dim3 + out_append})
         if dim1 in db.dims:
-            db = db.rename({dim1 : dim1+out_append})
+            db = db.rename({dim1: dim1 + out_append})
     elif len(dims) != 2:
         raise ValueError(
             "matmul can be one of '[str, str]', '[str, str, str]' or '[[str, str], [str, str]]'"
