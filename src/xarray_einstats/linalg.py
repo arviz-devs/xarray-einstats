@@ -388,6 +388,30 @@ def matmul(da, db, dims=None, out_append="2", **kwargs):
     )
 
 
+def matrix_transpose(da, dims):
+    """Transpose the underlying matrix without modifying the dimensions.
+
+    This convenience function uses :meth:`~xarray.DataArray.swap_dims` followed
+    by :meth:`~xarray.DataArray.transpose` to get the equivalent of a matrix transposition.
+
+    Parameters
+    ----------
+    da : DataArray
+        Input DataArray
+    dims : list of str
+        Matrix dimensions
+
+    Returns
+    -------
+    DataArray
+        The DataArray after transposing the matrix data but leaving the dimensions untouched.
+    """
+    if dims is None:
+        dims = _attempt_default_dims("matrix_power", da.dims)
+    dim1, dim2 = dims
+    return da.swap_dims({dim1: dim2, dim2: dim1}).transpose(..., *dims)
+
+
 def matrix_power(da, n, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.matrix_power`.
 
@@ -458,7 +482,7 @@ def svd(
         dims = _attempt_default_dims("svd", da.dims)
     m_dim, n_dim = dims
     m, n = len(da[m_dim]), len(da[n_dim])
-    k = min(m, n)
+    k, k_dim = (m, m_dim) if m >= n else (n, n_dim)
     k_dim = m_dim if k == m else n_dim
     s_dims = [k_dim]
     if full_matrices:
@@ -493,7 +517,7 @@ def eig(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("eig", da.dims)
     return xr.apply_ufunc(
-        np.linalg.eig, da, input_core_dims=[dims], output_core_dims=[dims[:1], dims], **kwargs
+        np.linalg.eig, da, input_core_dims=[dims], output_core_dims=[dims[-1:], dims], **kwargs
     )
 
 
@@ -508,7 +532,7 @@ def eigh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
         np.linalg.eigh,
         da,
         input_core_dims=[dims],
-        output_core_dims=[dims[:1], dims],
+        output_core_dims=[dims[-1:], dims],
         kwargs=dict(UPLO=UPLO),
         **kwargs,
     )
@@ -522,7 +546,7 @@ def eigvals(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("eigvals", da.dims)
     return xr.apply_ufunc(
-        np.linalg.eigvals, da, input_core_dims=[dims], output_core_dims=[dims[:1]], **kwargs
+        np.linalg.eigvals, da, input_core_dims=[dims], output_core_dims=[dims[-1:]], **kwargs
     )
 
 
@@ -537,7 +561,7 @@ def eigvalsh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
         np.linalg.eigvalsh,
         da,
         input_core_dims=[dims],
-        output_core_dims=[dims[:1]],
+        output_core_dims=[dims[-1:]],
         kwargs=dict(UPLO=UPLO),
         **kwargs,
     )

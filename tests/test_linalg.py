@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 import xarray as xr
-from xarray.testing import assert_allclose
+from xarray.testing import assert_allclose, assert_equal
 
 from xarray_einstats import einsum, matmul, raw_einsum, tutorial
 from xarray_einstats.linalg import (
@@ -16,6 +16,7 @@ from xarray_einstats.linalg import (
     inv,
     matrix_power,
     matrix_rank,
+    matrix_transpose,
     norm,
     qr,
     slogdet,
@@ -52,13 +53,29 @@ def matrices():
     return ds
 
 
+@pytest.fixture(scope="module")
+def hermitian():
+    """Hermitian and positive definite matrices."""
+    # fmt: off
+    a = [[[  2,  1],
+          [  1,  2]],
+         [[  5,  3],
+          [  3,  5]],
+         [[  4,-.7],
+          [-.7,  4]]]
+    # fmt: on
+    da = xr.DataArray(a, dims=["batch", "dim", "dim2"])
+    assert np.all(det(da, dims=("dim", "dim2")) > 0)
+    return da
+
+
 class TestEinsumFamily:
     # raw_einsum calls einsum, so the tests on raw_einsum also cover einsum, then
     # there are some specific ones for various reasons,
     # mostly to test features supported only in einsum
     def test_raw_einsum_implicit(self, matrices):
         out = raw_einsum("batch,experiment", matrices, matrices)
-        da = (matrices.sum("experiment") * matrices.sum("batch"))
+        da = matrices.sum("experiment") * matrices.sum("batch")
         assert list(out.dims) == ["dim", "dim2", "experiment", "batch"]
         assert_allclose(out, da.transpose(*out.dims))
 
@@ -78,7 +95,7 @@ class TestEinsumFamily:
     def test_einsum_implicit(self, matrices):
         da = matrices.rename(batch="ba tch", experiment="exp,er->iment")
         out = einsum([["ba tch"], ["exp,er->iment"]], da, da)
-        da = (da.sum("exp,er->iment") * da.sum("ba tch"))
+        da = da.sum("exp,er->iment") * da.sum("ba tch")
         assert_dims_in_da(out, ["dim", "dim2", "ba tch", "exp,er->iment"])
         assert_allclose(out, da.transpose(*out.dims))
 
@@ -101,6 +118,9 @@ class TestWrappers:
         assert out.shape == matrices.shape
         assert out.dims == matrices.dims
 
+    def test_transpose(self, hermitian):
+        assert_equal(hermitian, matrix_transpose(hermitian, dims=("dim", "dim2")))
+
     def test_matrix_power(self, matrices):
         out = matrix_power(matrices, 2, dims=("dim", "dim2"))
         assert out.shape == matrices.shape
@@ -119,3 +139,49 @@ class TestWrappers:
         np.testing.assert_allclose(
             np.eye(len(out.dim)), out.isel(experiment=0, batch=0).values, atol=1e-14, rtol=1e-7
         )
+
+    def test_eig_funcs(self, matrices):
+        eig_w, eig_v = eig(matrices, dims=("dim", "dim2"))
+        eigvals_w = eigvals(matrices, dims=("dim", "dim2"))
+        assert_allclose(eig_w, eigvals_w, atol=1e-15)
+        left = matmul(matrices, eig_v, dims=("dim", "dim2"))
+        right = eig_w * eig_v
+        assert_allclose(left, right.transpose(*left.dims), atol=1e-14)
+
+    def test_eigh_funcs(self, hermitian):
+        eig_w, eig_v = eigh(hermitian, dims=("dim", "dim2"))
+        eigvals_w = eigvalsh(hermitian, dims=("dim", "dim2"))
+        assert_allclose(eig_w, eigvals_w, atol=1e-15)
+        left = matmul(hermitian, eig_v, dims=("dim", "dim2"))
+        right = eig_w * eig_v
+        assert_allclose(left, right.transpose(*left.dims), atol=1e-14)
+
+    def test_cholesky(self, hermitian):
+        chol = cholesky(hermitian, dims=("dim", "dim2"))
+        assert hermitian.dims == chol.dims
+        chol_chol_t = matmul(
+            chol, matrix_transpose(chol, dims=("dim", "dim2")), dims=("dim", "dim2")
+        )
+        assert_allclose(hermitian, chol_chol_t)
+
+    @pytest.mark.skip("Requires numpy>=1.22, which is not yet supported by numba")
+    def test_qr(self, matrices):
+        q_da, r_da = qr(matrices, dims=("dim", "dim2"))
+        assert_allclose(matrices, matmul(q_da, r_da, dims=("dim", "dim2")))
+
+    def test_svd(self, matrices):
+        u_da, s_da, vh_da = svd(matrices, dims=("dim", "dim2"))
+        compare = matmul(
+            u_da * s_da.rename(dim="dim2"), vh_da, dims=("dim", "dim2", "dim22")
+        ).rename(dim22="dim2")
+        assert_allclose(matrices, compare.transpose(*matrices.dims), atol=1e-13)
+
+    def test_slogdet_det(self, matrices):
+        sign, logdet = slogdet(matrices, dims=("dim", "dim2"))
+        det_da = det(matrices, dims=("dim", "dim2"))
+        assert_allclose(sign * np.exp(logdet), det_da)
+
+    def test_solve(self, matrices):
+        b = matrices.std("dim2")
+        y = solve(matrices, b, dims=("dim", "dim2"))
+        assert_allclose(b, xr.dot(matrices, y.rename(dim="dim2"), dims="dim2"), atol=1e-14)

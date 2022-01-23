@@ -23,5 +23,5 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
-          name: ${{ matrix.python-version }}
+          name: Python ${{ matrix.python-version }}
           fail_ci_if_error: false

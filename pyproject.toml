@@ -24,6 +24,7 @@ classifiers = [
 ]
 dynamic = ["version", "description"]
 dependencies = [
+  "numpy>=1.21",
   "scipy",
   "xarray>=0.20",
 ]
@@ -38,15 +39,11 @@ documentation = "https://xarray-einstats.readthedocs.io"
 
 [project.optional-dependencies]
 einops = [ "einops" ]
-numba = [ "numba" ]
-all = [ "einops", "numba" ]
+numba = [ "numba>=0.55" ]
 test = [
-    "mypy",
     "hypothesis",
     "pytest",
     "pytest-cov",
-    "einops",
-    "numba"
 ]
 doc = [
     "furo",
@@ -57,8 +54,6 @@ doc = [
     "sphinx>=4",
     "jupyter-sphinx",
     "sphinx-design",
-    "einops",
-    "numba",
 ]
 
 [tool.black]
