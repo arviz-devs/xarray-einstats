@@ -2,7 +2,6 @@
 
 [![Documentation Status](https://readthedocs.org/projects/xarray-einstats/badge/?version=latest)](https://xarray-einstats.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
 
 Stats, linear algebra and einops for xarray
@@ -137,7 +136,7 @@ Take a look at {func}`~xarray_einstats.linalg.get_default_dims`
 And if you still need more reasons for `xarray_einstats`, to complement
 the `einops` wrappers, it also provides {func}`xarray_einstats.einsum`!
 
-More examples available, also using `einsum` at {ref}`stats_tutorial`.
+More examples available, also using `einsum` at {ref}`linalg_tutorial`.
 
 ### einops
 **repeat wrapper still missing**
@@ -306,6 +305,11 @@ Dimensions without coordinates: chain1,team1, team2,chain2
 
 More einops examples with both `rearrange` and `reduce` at {ref}`einops_tutorial`
 
+### Other features
+`xarray_einstats` also includes some functions that are not direct wrappers of other
+libraries. {func}`~xarray_einstats.numba.histogram` for example combines numba,
+numpy and xarray to provide a vectorized version of `numpy.histogram` that works
+on DataArrays.
 
 ## Similar projects
 Here we list some similar projects we know of. Note that all of
