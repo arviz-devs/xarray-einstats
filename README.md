@@ -4,6 +4,11 @@
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
 
+
+[![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)
+
+
+
 Stats, linear algebra and einops for xarray
 
 > ⚠️  **Caution: This project is still in a very early development stage**

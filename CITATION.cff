@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: xarray-einstats
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Oriol
+    family-names: Abril Pla
+    email: oriol.abril.pla@gmail.com
+    affiliation: Helsinki University
+    orcid: 'https://orcid.org/0000-0002-1847-9481'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.5895451
+    description: >-
+      This is the collection of archived snapshots of
+      all versions of xarray-einstats
+repository-code: 'https://github.com/arviz-devs/xarray-einstats'
+url: 'https://xarray-einstats.readthedocs.io'
+keywords:
+  - python
+  - data science
+  - statistics
+  - labeled arrays
+license: Apache-2.0
