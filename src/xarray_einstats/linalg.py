@@ -436,7 +436,7 @@ def cholesky(da, dims=None, **kwargs):
     )
 
 
-def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pylint: disable=invalid-name
+def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pragma: no cover
     """Wrap :func:`numpy.linalg.qr`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.

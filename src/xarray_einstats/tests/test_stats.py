@@ -78,6 +78,21 @@ class TestRvWrappers:
         assert len(out[dim_names[0]]) == 2
         assert len(out[dim_names[1]]) == 7
 
+    @pytest.mark.parametrize("size", (1, 10))
+    @pytest.mark.parametrize("dims", (None, "name", ["name"]))
+    def test_rv_method_scalar_size(self, data, wrapper, size, dims):
+        if wrapper == "continuous":
+            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
+        else:
+            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
+        out = dist.rvs(size=size, dims=dims)
+        dim_name = "rv_dim0" if dims is None else "name"
+        if size == 1:
+            assert dim_name not in out.dims
+        else:
+            assert dim_name in out.dims
+            assert len(out[dim_name]) == size
+
     def test_non_broadcastable_input(self, data, wrapper):
         if wrapper == "continuous":
             dist = XrContinuousRV(stats.norm, data["mu"], 1)

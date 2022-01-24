@@ -125,10 +125,13 @@ class TestWrappers:
     def test_reduce_to_scalar(self, matrices, method):
         out = method(matrices, dims=("dim", "dim2"))
         assert out.shape == (10, 3)
-        assert "batch" in out.dims
-        assert "experiment" in out.dims
-        assert "dim" not in out.dims
-        assert "dim2" not in out.dims
+        assert_dims_in_da(out, ("batch", "experiment"))
+        assert_dims_not_in_da(out, ["dim", "dim2"])
+
+    def test_vector_norm(self, matrices):
+        out = norm(matrices, dims="experiment")
+        assert_dims_in_da(out, ("batch", "dim", "dim2"))
+        assert_dims_not_in_da(out, ["experiment"])
 
     def test_inv(self, matrices):
         out = inv(matrices, dims=("dim", "dim2"))

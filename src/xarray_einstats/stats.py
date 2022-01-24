@@ -161,24 +161,25 @@ class XrRV:
                 dims_in = a.dims
                 break
 
+        if isinstance(dims, str):
+            dims = [dims]
+
         if isinstance(size, (Sequence, np.ndarray)):
             if dims is None:
                 dims = [f"rv_dim{i}" for i, _ in enumerate(size)]
-            else:
-                if len(dims) != len(size):
-                    raise ValueError("dims and size must have the same length")
+            if len(dims) != len(size):
+                raise ValueError("dims and size must have the same length")
             size = (*size, *size_in)
         elif size > 1:
             if dims is None:
                 dims = ["rv_dim0"]
-            elif isinstance(dims, str):
-                dims = [dims]
             if len(dims) != 1:
                 raise ValueError("dims and size must have the same length")
             size = (size, *size_in)
         else:
             if size_in:
                 size = size_in
+            dims = None
 
         if dims is None:
             dims = tuple()
