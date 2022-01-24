@@ -93,7 +93,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     if bins is None:
         bin_edges = np.histogram_bin_edges(da.values.flatten())
     elif isinstance(bins, (str, int)):
-        bin_edges = np.histogram_bin_edges(da.values.flatten(), bins=bin_edges)
+        bin_edges = np.histogram_bin_edges(da.values.flatten(), bins=bins)
     else:
         bin_edges = bins
     if not isinstance(dims, str):
