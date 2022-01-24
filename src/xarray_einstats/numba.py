@@ -79,11 +79,11 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     along both `chain` and `draw` dimensions but not the `match` one. Consequently,
     `histogram` generates one independent histogram per `match`:
 
-    .. jupyter-notebook::
+    .. jupyter-execute::
 
         from xarray_einstats import tutorial, numba
         ds = tutorial.generate_mcmc_like_dataset(3)
-        numba.tutorial(ds["score"])
+        numba.histogram(ds["score"], dims=("chain", "draw"))
 
     Note how the return is a single DataArray, not an array with the histogram and another
     with the bin edges. That is because the bin edges are included as coordinate values.

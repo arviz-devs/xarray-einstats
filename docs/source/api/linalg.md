@@ -14,7 +14,7 @@
   raw_einsum
   einsum_path
   matmul
-  linalg.matrix_transposition
+  linalg.matrix_transpose
   linalg.matrix_power
 ```
 

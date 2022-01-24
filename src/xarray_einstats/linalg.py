@@ -4,6 +4,7 @@ import xarray as xr
 
 __all__ = [
     "matrix_power",
+    "matrix_transpose",
     "cholesky",
     "qr",
     "svd",
