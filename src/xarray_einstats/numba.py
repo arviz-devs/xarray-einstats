@@ -24,7 +24,7 @@ __all__ = ["histogram"]
     target="parallel",
     nopython=True,
 )
-def hist_ufunc(data, bin_edges, res):
+def hist_ufunc(data, bin_edges, res):  # pragma: no cover
     """Use :func:`numba.guvectorize` to convert numpy histogram into a ufunc.
 
     Notes
@@ -34,6 +34,9 @@ def hist_ufunc(data, bin_edges, res):
     in the inputs; they can be in different order, duplicated or reduced, but the output
     can't introduce new dimensions.
     """
+    # coverage doesn't seem to recognize that we do call this functions, and I assume
+    # it happens with all guvectorized functions, so skipping them from coverage
+    # Note: it would be nice to add something to tox.ini about *auto* skipping if guvectorized
     # TODO: check signatures
     m = len(bin_edges)
     res[:] = 0
