@@ -25,7 +25,15 @@ __all__ = ["histogram"]
     nopython=True,
 )
 def hist_ufunc(data, bin_edges, res):
-    """Use :func:`numba.guvectorize` to convert numpy histogram into a ufunc."""
+    """Use :func:`numba.guvectorize` to convert numpy histogram into a ufunc.
+
+    Notes
+    -----
+    ``bin_edges`` is a required argument because it is needed to have a valid call
+    signature. The shape of the output must be generated from the dimensions available
+    in the inputs; they can be in different order, duplicated or reduced, but the output
+    can't introduce new dimensions.
+    """
     # TODO: check signatures
     m = len(bin_edges)
     res[:] = 0
@@ -43,7 +51,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
         Data to be binned.
     dims : str or list of str
         Dimensions that should be reduced by binning.
-    bin_edges : array_like, int or str, optional
+    bins : array_like, int or str, optional
         Passed to :func:`numpy.histogram_bin_edges`. If ``None`` (the default)
         ``histogram_bin_edges`` is called without arguments. Bin edges
         are shared by all generated histograms.
@@ -64,6 +72,21 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
         The bin edges are returned as coordinate values indexed by the dimension
         ``bin``, left bin edges are stored as ``left_edges`` right ones as
         ``right_edges``.
+
+    Examples
+    --------
+    Use `histogram` to compute multiple histograms in a vectorized fashion, binning
+    along both `chain` and `draw` dimensions but not the `match` one. Consequently,
+    `histogram` generates one independent histogram per `match`:
+
+    .. jupyter-notebook::
+
+        from xarray_einstats import tutorial, numba
+        ds = tutorial.generate_mcmc_like_dataset(3)
+        numba.tutorial(ds["score"])
+
+    Note how the return is a single DataArray, not an array with the histogram and another
+    with the bin edges. That is because the bin edges are included as coordinate values.
 
     """
     # TODO: make dask compatible even when bin edges are not passed manually

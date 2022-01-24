@@ -1,6 +1,3 @@
-ignore:
-    - src/xarray_einstats/tutorial/
-
 codecov:
     notify:
         after_n_builds: 3

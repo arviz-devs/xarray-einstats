@@ -338,7 +338,7 @@ def raw_einsum(
         dims = [*in_dims, []]
     else:
         out_dims = [dim.strip(", ") for dim in out_subscript.split(" ")]
-        dims = in_dims + out_dims
+        dims = [*in_dims, out_dims]
     return einsum(
         dims,
         *operands,

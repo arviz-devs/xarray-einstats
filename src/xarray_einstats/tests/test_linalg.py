@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 from xarray.testing import assert_allclose, assert_equal
 
-from xarray_einstats import einsum, matmul, raw_einsum, tutorial
+from xarray_einstats import einsum, einsum_path, linalg, matmul, raw_einsum, tutorial
 from xarray_einstats.linalg import (
     cholesky,
     cond,
@@ -26,15 +26,7 @@ from xarray_einstats.linalg import (
     trace,
 )
 
-
-def assert_dims_in_da(da, dims):
-    for dim in dims:
-        assert dim in da.dims
-
-
-def assert_dims_not_in_da(da, dims):
-    for dim in dims:
-        assert dim not in da.dims
+from .utils import assert_dims_in_da, assert_dims_not_in_da
 
 
 @pytest.fixture(scope="module")
@@ -70,6 +62,19 @@ def hermitian():
     return da
 
 
+def test_no_dims(matrices, monkeypatch):
+    with pytest.raises(TypeError, match="missing required argument dims"):
+        inv(matrices)
+
+    def default_dims(dims1, dims2):  # pylint: disable=unused-argument
+        return ("dim", "dim2")
+
+    monkeypatch.setattr(linalg, "get_default_dims", default_dims)
+
+    out = inv(matrices)
+    assert out.dims == matrices.dims
+
+
 class TestEinsumFamily:
     # raw_einsum calls einsum, so the tests on raw_einsum also cover einsum, then
     # there are some specific ones for various reasons,
@@ -87,6 +92,13 @@ class TestEinsumFamily:
         assert_dims_in_da(out, ["dim", "dim2"])
         assert_allclose(out, da.transpose(*out.dims))
 
+    def test_raw_einsum_transpose(self, matrices):
+        out = raw_einsum("batch experiment->experiment batch", matrices)
+        assert out.ndim == matrices.ndim
+        assert out.dims[-1] == "batch"
+        assert out.dims[-2] == "experiment"
+        assert_allclose(out, matrices.transpose(*out.dims))
+
     def test_einsum_outer(self, matrices):
         out = einsum([[], []], matrices, matrices, keep_dims={"dim"}, out_append="_bis{i}")
         da = (matrices * matrices.rename(dim="dim_bis2")).transpose(*out.dims)
@@ -99,6 +111,10 @@ class TestEinsumFamily:
         da = da.sum("exp,er->iment") * da.sum("ba tch")
         assert_dims_in_da(out, ["dim", "dim2", "ba tch", "exp,er->iment"])
         assert_allclose(out, da.transpose(*out.dims))
+
+    def test_einsum_path(self, matrices):
+        out = einsum_path([["batch"], ["experiment"], []], matrices, matrices)
+        assert out
 
 
 class TestWrappers:
