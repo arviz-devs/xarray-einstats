@@ -1,6 +1,6 @@
 # xarray-einstats Community Code of Conduct
 
-xarray-einstats adopts the NumFOCUS Code of Conduct directly. In other words, we
+As part of the ArviZ project, xarray-einstats adopts the NumFOCUS Code of Conduct directly. In other words, we
 expect our community to treat others with kindness and understanding.
 
 
