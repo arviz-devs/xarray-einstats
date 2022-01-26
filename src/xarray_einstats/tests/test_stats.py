@@ -14,7 +14,9 @@ from xarray_einstats.stats import (
     circvar,
     gmean,
     hmean,
+    kurtosis,
     rankdata,
+    skew,
 )
 
 from .utils import assert_dims_in_da, assert_dims_not_in_da
@@ -132,7 +134,7 @@ def test_rankdata(data, dims):
 
 
 @pytest.mark.parametrize("dims", ("team", ("chain", "draw"), None))
-@pytest.mark.parametrize("func", (gmean, hmean, circmean, circstd, circvar))
+@pytest.mark.parametrize("func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew))
 def test_reduce_function(data, dims, func):
     da = data["mu"]
     out = func(da, dims=dims)

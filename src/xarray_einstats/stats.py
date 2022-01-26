@@ -10,12 +10,14 @@ from scipy import stats
 __all__ = [
     "XrContinuousRV",
     "XrDiscreteRV",
-    "rankdata",
+    "circmean",
+    "circstd",
+    "circvar",
     "gmean",
     "hmean",
-    "circmean",
-    "circvar",
-    "circstd",
+    "kurtosis",
+    "rankdata",
+    "skew",
 ]
 
 
@@ -419,3 +421,25 @@ def circstd(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
     if nan_policy is not None:
         circstd_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circstd, da, dims, kwargs, circstd_kwargs)
+
+
+def kurtosis(da, fisher=True, bias=True, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.kurtosis`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
+    kurtosis_kwargs = dict(axis=-1, fisher=fisher, bias=bias)
+    if nan_policy is not None:
+        kurtosis_kwargs["nan_policy"] = nan_policy
+    return _apply_reduce_func(stats.kurtosis, da, dims, kwargs, kurtosis_kwargs)
+
+
+def skew(da, bias=True, dims=None, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.skew`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
+    skew_kwargs = dict(axis=-1, bias=bias)
+    if nan_policy is not None:
+        skew_kwargs["nan_policy"] = nan_policy
+    return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
