@@ -1,6 +1,6 @@
-# ArviZ Community Code of Conduct
+# xarray-einstats Community Code of Conduct
 
-ArviZ adopts the NumFOCUS Code of Conduct directly. In other words, we
+xarray-einstats adopts the NumFOCUS Code of Conduct directly. In other words, we
 expect our community to treat others with kindness and understanding.
 
 
@@ -13,7 +13,7 @@ All communication should be appropriate for a professional audience
 including people of many different backgrounds. Sexual language and
 imagery are not appropriate.
 
-ArviZ is dedicated to providing a harassment-free community for everyone,
+xarray-einstats is dedicated to providing a harassment-free community for everyone,
 regardless of gender, sexual orientation, gender identity, and
 expression, disability, physical appearance, body size, race,
 or religion. We do not tolerate harassment of community members
@@ -45,6 +45,6 @@ https://www.numfocus.org/privacy-policy
 
 
 # Full Code of Conduct
-The full text of the NumFOCUS/ArviZ Code of Conduct can be found on
+The full text of the NumFOCUS/xarray-einstats Code of Conduct can be found on
 NumFOCUS's website  
 https://numfocus.org/code-of-conduct
