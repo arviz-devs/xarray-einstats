@@ -29,11 +29,13 @@ but the output will be a numpy array.
 .. autosummary::
   :toctree: generated/
 
+  circmean
+  circstd
+  circvar
   gmean
   hmean
-  circmean
-  circvar
-  circstd
+  kurtosis
+  skew
 ```
 
 ## Other statistical functions
