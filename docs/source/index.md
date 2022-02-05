@@ -16,8 +16,9 @@ changelog
 :caption: Contributing
 :hidden:
 
-Overview <contributing>
-Reference <dev_reference>
+Overview <contributing/overview>
+Reference <contributing/dev_reference>
+How-to guides <contributing/how_to>
 ```
 
 ```{toctree}

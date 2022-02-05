@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
+    "sphinx.ext.extlinks",
     "numpydoc",
     "myst_nb",
     "sphinx_copybutton",
@@ -58,8 +59,8 @@ default_role = "code"
 add_function_parentheses = False
 
 extlinks = {
-    "issue": ("https://github.com/arviz-devs/xarray-einstats/issues/%s", "GH"),
-    "pull": ("https://github.com/arviz-devs/xarray-einstats/pull/%s", "PR"),
+    "issue": ("https://github.com/arviz-devs/xarray-einstats/issues/%s", "GH#"),
+    "pull": ("https://github.com/arviz-devs/xarray-einstats/pull/%s", "PR#"),
 }
 
 # -- Options for extensions

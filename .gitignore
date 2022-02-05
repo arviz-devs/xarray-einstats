@@ -92,6 +92,7 @@ instance/
 docs/_build/
 docs/source/generated
 docs/source/api/generated
+docs/source/contributing/generated
 
 # PyBuilder
 .pybuilder/

@@ -1,3 +1,4 @@
+(dev_reference)=
 # Contributing reference
 Reference document for contributors.
 Here we document part of the private API of the library as well as
