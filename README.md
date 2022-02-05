@@ -3,10 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/xarray-einstats/badge/?version=latest)](https://xarray-einstats.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
-
-
 [![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)
-
 
 
 Stats, linear algebra and einops for xarray
@@ -321,3 +318,24 @@ Here we list some similar projects we know of. Note that all of
 them are complementary and don't overlap:
 * [xr-scipy](https://xr-scipy.readthedocs.io/en/latest/index.html)
 * [xarray-extras](https://xarray-extras.readthedocs.io/en/latest/)
+
+## Cite xarray-einstats
+If you use this software, please cite it using the following template and the version
+specific DOI provided by Zenodo. Click on the badge to go to the Zenodo page
+and select the DOI corresponding to the version you used
+[![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)
+
+* Oriol Abril-Pla. (2022). arviz-devs/xarray-einstats `<version>`. Zenodo. `<version_doi>`
+
+or in bibtex format:
+
+```bibtex
+@software{oriol_abril_pla_2022_5895499,
+  author       = {Abril-Pla, Oriol},
+  title        = {arviz-devs/xarray-einstats},
+  year         = 2022,
+  publisher    = {Zenodo},
+  version      = {<version>},
+  doi          = {<version_doi>},
+}
+```
