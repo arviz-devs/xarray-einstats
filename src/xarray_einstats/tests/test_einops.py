@@ -123,7 +123,7 @@ class TestReduce:
                     d2=4,
                     b2=2,
                 ),
-                ((6, 2 * 2), ["subject", "b1,d1"]),
+                ((6, 2 * 2), ["subject", "b1-d1"]),
             ),
         ),
     )

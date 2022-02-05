@@ -101,7 +101,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
             txt.append(f"( {handler.get_names(values)} )")
         elif allow_list:
             out.extend(subitem)
-            out_names.append(",".join(subitem))
+            out_names.append("-".join(subitem))
             txt.append(f"( {handler.get_names(subitem)} )")
         else:
             raise ValueError(
