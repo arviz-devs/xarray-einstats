@@ -330,7 +330,7 @@ and select the DOI corresponding to the version you used
 or in bibtex format:
 
 ```bibtex
-@software{oriol_abril_pla_2022_5895499,
+@software{xarray_einstats2022,
   author       = {Abril-Pla, Oriol},
   title        = {arviz-devs/xarray-einstats},
   year         = 2022,
