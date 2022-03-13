@@ -2,6 +2,7 @@
 """Test the stats module."""
 import numpy as np
 import pytest
+import xarray as xr
 from scipy import stats
 from xarray.testing import assert_allclose
 
@@ -15,6 +16,7 @@ from xarray_einstats.stats import (
     gmean,
     hmean,
     kurtosis,
+    median_abs_deviation,
     rankdata,
     skew,
 )
@@ -134,7 +136,9 @@ def test_rankdata(data, dims):
 
 
 @pytest.mark.parametrize("dims", ("team", ("chain", "draw"), None))
-@pytest.mark.parametrize("func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew))
+@pytest.mark.parametrize(
+    "func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew, median_abs_deviation)
+)
 def test_reduce_function(data, dims, func):
     da = data["mu"]
     out = func(da, dims=dims)
@@ -145,3 +149,14 @@ def test_reduce_function(data, dims, func):
     expected_dims = [dim for dim in da.dims if dim not in dims]
     assert_dims_in_da(out, expected_dims)
     assert_dims_not_in_da(out, dims)
+
+
+def test_mad_da_scale(data):
+    s_da = xr.DataArray([1, 2, 1, 1], coords={"chain": data.chain})
+    out = median_abs_deviation(data["mu"], dims="draw", scale=s_da)
+    out1 = median_abs_deviation(data["mu"].sel(chain=0), dims="draw", scale=1)
+    out2 = median_abs_deviation(data["mu"].sel(chain=1), dims="draw", scale=2)
+    assert_dims_in_da(out, ("chain", "team"))
+    assert_dims_not_in_da(out, ["draw"])
+    assert_allclose(out.sel(chain=0), out1)
+    assert_allclose(out.sel(chain=1), out2)

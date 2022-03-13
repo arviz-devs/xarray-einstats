@@ -443,3 +443,65 @@ def skew(da, bias=True, dims=None, nan_policy=None, **kwargs):
     if nan_policy is not None:
         skew_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
+
+
+def median_abs_deviation(da, dims=None, center=None, scale=1, nan_policy=None, **kwargs):
+    """Wrap and extend :func:`scipy.stats.median_abs_deviation`.
+
+    Usage examples available at :ref:`stats_tutorial`.
+
+    All parameters take the same values and types as the scipy counterpart
+    with the exception of ``scale``. Here ``scale`` can also take
+    :class:`~xarray.DataArray` values in which case, broadcasting
+    is handled by xarray, as shown in the example.
+
+
+    Examples
+    --------
+    Use a ``DataArray`` as ``scale``.
+
+    .. jupyter-execute::
+
+        import xarray as xr
+        from xarray_einstats import tutorial, stats
+        ds = tutorial.generate_mcmc_like_dataset(3)
+        s_da = xr.DataArray([1, 2, 1, 1], coords={"chain": ds.chain})
+        stats.median_abs_deviation(ds["mu"], dims="draw", scale=s_da)
+
+    Note that this doesn't work with the scipy counterpart because
+    `s_da` can't be broadcasted with the output:
+
+    .. jupyter-execute::
+        :raises: ValueError
+
+        from scipy import stats
+        stats.median_abs_deviation(ds["mu"], axis=1, scale=s_da)
+
+    """
+    mad_kwargs = dict(axis=-1)
+    if center is not None:
+        mad_kwargs["center"] = center
+    if nan_policy is not None:
+        mad_kwargs["nan_policy"] = nan_policy
+
+    if dims is None:
+        dims = get_default_dims(da.dims)
+    if not isinstance(dims, str):
+        da = da.stack(__aux_dim__=dims)
+        core_dims = ["__aux_dim__"]
+    else:
+        core_dims = [dims]
+
+    scale_dims = []
+    if isinstance(scale, xr.DataArray):
+        scale_dims = [d for d in scale.dims if d in core_dims]
+
+    return xr.apply_ufunc(
+        lambda a, s, **kwargs: stats.median_abs_deviation(a, scale=s, **kwargs),
+        da,
+        scale,
+        input_core_dims=[core_dims, scale_dims],
+        output_core_dims=[[]],
+        kwargs=mad_kwargs,
+        **kwargs,
+    )
