@@ -36,6 +36,7 @@ but the output will be a numpy array.
   hmean
   kurtosis
   skew
+  median_abs_deviation
 ```
 
 ## Other statistical functions
