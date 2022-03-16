@@ -49,7 +49,7 @@ used to choose the dimensions on which to operate by default can be very powerfu
 even a game changer.
 
 After considering some alternatives, we ended up deciding on providing the infrastructure
-and encouraging monkeypatching as a way for users to costumize this logic. We want
+and encouraging monkeypatching as a way for users to customize this logic. We want
 the functions in this module to have a simple call signature as close as possible
 to their numpy counterpart. Using alternatives like inheritance would require restructuring
 the module into a class and class methods. More functional approaches require
