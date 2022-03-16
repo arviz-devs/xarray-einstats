@@ -75,6 +75,7 @@ autodoc_default_options = {
     "members": False,
 }
 
+numpydoc_show_class_members = False
 numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {"of", "or", "optional", "scalar"}
 singulars = ("int", "list", "dict", "float")

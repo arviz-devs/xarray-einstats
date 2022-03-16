@@ -122,6 +122,7 @@ class XrRV:
         self.kwargs = kwargs
 
     def _broadcast_args(self, args, kwargs):
+        """Broadcast and combine initialization and method provided args and kwargs."""
         len_args = len(args) + len(self.args)
         all_args = [*args, *self.args, *kwargs.values(), *self.kwargs.values()]
         broadcastable = []
