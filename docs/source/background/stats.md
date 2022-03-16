@@ -85,4 +85,4 @@ The general pattern of these wrappers is the following:
 
 Steps 3 and 4 are generally done via {func}`xarray_einstats.stats._apply_reduce_func` and
 {func}`xarray_einstats.stats._apply_nonreduce_func`. However, if necessary, they are
-done manually (for now this only happens with {func}`~xarray_einstats.stats.median_abs_deviance`)
+done manually (for now this only happens with {func}`~xarray_einstats.stats.median_abs_deviation`)
