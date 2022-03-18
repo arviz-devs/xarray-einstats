@@ -350,7 +350,7 @@ def raw_einsum(
     )
 
 
-def matmul(da, db, dims=None, out_append="2", **kwargs):
+def matmul(da, db, dims=None, *, out_append="2", **kwargs):
     """Wrap :func:`numpy.linalg.matmul`.
 
     Usage examples of all arguments is available at the
@@ -437,7 +437,7 @@ def cholesky(da, dims=None, **kwargs):
     )
 
 
-def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pragma: no cover
+def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: no cover
     """Wrap :func:`numpy.linalg.qr`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -473,7 +473,7 @@ def qr(da, dims=None, mode="reduced", out_append="2", **kwargs):  # pragma: no c
 
 
 def svd(
-    da, dims=None, full_matrices=True, compute_uv=True, hermitian=False, out_append="2", **kwargs
+    da, dims=None, *, full_matrices=True, compute_uv=True, hermitian=False, out_append="2", **kwargs
 ):
     """Wrap :func:`numpy.linalg.svd`.
 
@@ -522,7 +522,7 @@ def eig(da, dims=None, **kwargs):
     )
 
 
-def eigh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
+def eigh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.eigh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -551,7 +551,7 @@ def eigvals(da, dims=None, **kwargs):
     )
 
 
-def eigvalsh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
+def eigvalsh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.eigvalsh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -568,7 +568,7 @@ def eigvalsh(da, dims=None, UPLO="L", **kwargs):  # pylint: disable=invalid-name
     )
 
 
-def norm(da, dims=None, ord=None, **kwargs):  # pylint: disable=redefined-builtin
+def norm(da, dims=None, *, ord=None, **kwargs):  # pylint: disable=redefined-builtin
     """Wrap :func:`numpy.linalg.norm`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -587,7 +587,7 @@ def norm(da, dims=None, ord=None, **kwargs):  # pylint: disable=redefined-builti
     )
 
 
-def cond(da, dims=None, p=None, **kwargs):  # pylint: disable=invalid-name
+def cond(da, dims=None, *, p=None, **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.cond`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -607,7 +607,7 @@ def det(da, dims=None, **kwargs):
     return xr.apply_ufunc(np.linalg.det, da, input_core_dims=[dims], **kwargs)
 
 
-def matrix_rank(da, dims=None, tol=None, hermitian=False, **kwargs):
+def matrix_rank(da, dims=None, *, tol=None, hermitian=False, **kwargs):
     """Wrap :func:`numpy.linalg.matrix_rank`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -635,7 +635,7 @@ def slogdet(da, dims=None, **kwargs):
     )
 
 
-def trace(da, dims=None, offset=0, dtype=None, out=None, **kwargs):
+def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
     """Wrap :func:`numpy.trace`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
