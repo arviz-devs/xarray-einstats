@@ -332,8 +332,9 @@ or in bibtex format:
 ```bibtex
 @software{xarray_einstats2022,
   author       = {Abril-Pla, Oriol},
-  title        = {arviz-devs/xarray-einstats},
+  title        = {{xarray-einstats}},
   year         = 2022,
+  url          = {https://github.com/arviz-devs/xarray-einstats}
   publisher    = {Zenodo},
   version      = {<version>},
   doi          = {<version_doi>},

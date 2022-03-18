@@ -26,12 +26,13 @@ keywords:
 license: Apache-2.0
 preferred-citation:
   type: software
+  title: xarray-einstats
   authors:
   - family-names: Abril-Pla
     given-names: Oriol
     orcid: 'https://orcid.org/0000-0002-1847-9481'
   doi: 10.5281/zenodo.5895451
-  title: xarray-einstats
+  url: 'https://github.com/arviz-devs/xarray-einstats'
   year: 2022
   publisher: Zenodo
   license: Apache-2.0
