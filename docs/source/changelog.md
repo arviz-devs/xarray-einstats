@@ -6,10 +6,13 @@
 
 ### Maintenance and fixes
 * Changed the automatic names in einops module to use dashes instead of commas
+* Make API coherent with the call signature `da, dims=None, *, ...` for `stats`
+  and `linalg` modules {pull}`7`.
 
 ### Documentation
 * Added info on how to cite the library on README and citation file
-* Added background/explanation page for the stats module.
+* Added background/explanation page for the stats module. {pull}`5`
+* Improve citation guidance {pull}`6`
 
 ### Developer facing changes
 * Added how-to release guide

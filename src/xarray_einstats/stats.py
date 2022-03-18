@@ -352,7 +352,7 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
     return out_da
 
 
-def rankdata(da, dims=None, method=None, **kwargs):
+def rankdata(da, dims=None, *, method=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.rankdata`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -367,7 +367,7 @@ def rankdata(da, dims=None, method=None, **kwargs):
     return _apply_nonreduce_func(stats.rankdata, da, dims, kwargs, rank_kwargs)
 
 
-def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
+def gmean(da, dims=None, dtype=None, *, weights=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.gmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -380,7 +380,7 @@ def gmean(da, dims=None, dtype=None, weights=None, **kwargs):
     return _apply_reduce_func(stats.gmean, da, dims, kwargs, gmean_kwargs)
 
 
-def hmean(da, dims=None, dtype=None, **kwargs):
+def hmean(da, dims=None, *, dtype=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.hmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -391,7 +391,7 @@ def hmean(da, dims=None, dtype=None, **kwargs):
     return _apply_reduce_func(stats.hmean, da, dims, kwargs, hmean_kwargs)
 
 
-def circmean(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+def circmean(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.circmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -402,7 +402,7 @@ def circmean(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.circmean, da, dims, kwargs, circmean_kwargs)
 
 
-def circvar(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+def circvar(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.circvar`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -413,7 +413,7 @@ def circvar(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.circvar, da, dims, kwargs, circvar_kwargs)
 
 
-def circstd(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
+def circstd(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.circstd`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -424,7 +424,7 @@ def circstd(da, high=2 * np.pi, low=0, dims=None, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.circstd, da, dims, kwargs, circstd_kwargs)
 
 
-def kurtosis(da, fisher=True, bias=True, dims=None, nan_policy=None, **kwargs):
+def kurtosis(da, dims=None, *, fisher=True, bias=True, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.kurtosis`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -435,7 +435,7 @@ def kurtosis(da, fisher=True, bias=True, dims=None, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.kurtosis, da, dims, kwargs, kurtosis_kwargs)
 
 
-def skew(da, bias=True, dims=None, nan_policy=None, **kwargs):
+def skew(da, dims=None, *, bias=True, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.skew`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -446,7 +446,7 @@ def skew(da, bias=True, dims=None, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
 
 
-def median_abs_deviation(da, dims=None, center=None, scale=1, nan_policy=None, **kwargs):
+def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.median_abs_deviation`.
 
     Usage examples available at :ref:`stats_tutorial`.
