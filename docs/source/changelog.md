@@ -3,6 +3,7 @@
 ## Unreleased (v0.x.x)
 ### New Features
 * Added `skew`, `kurtosis` and `median_abs_deviation` to `stats` module {pull}`3`, {pull}`4`
+* Improve flexibility and autorenaming in `matmul` {pull}`8`
 
 ### Maintenance and fixes
 * Changed the automatic names in einops module to use dashes instead of commas
