@@ -356,6 +356,7 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
     Usage examples of all arguments is available at the
     :ref:`matmul section <linalg_tutorial/matmul>` of the linear algebra module tutorial.
     """
+    rename = False
     if dims is None:
         dims = _attempt_default_dims("matmul", da.dims, db.dims)
     if len(dims) == 3:
@@ -363,10 +364,15 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
         dims1 = [dim1, dim2]
         dims2 = [dim2, dim3]
         out_dims = [dim1, dim3]
-        if dim3 in da.dims:
-            da = da.rename({dim3: dim3 + out_append})
-        if dim1 in db.dims:
-            db = db.rename({dim1: dim1 + out_append})
+        if dim1 == dim3:
+            db = db.rename({dim3: dim3 + out_append})
+            dims2 = [dim2, dim3 + out_append]
+            out_dims = [dim1, dim3 + out_append]
+        else:
+            if dim3 in da.dims:
+                da = da.rename({dim3: dim3 + out_append})
+            if dim1 in db.dims:
+                db = db.rename({dim1: dim1 + out_append})
     elif len(dims) != 2:
         raise ValueError(
             "matmul can be one of '[str, str]', '[str, str, str]' or '[[str, str], [str, str]]'"
@@ -376,10 +382,15 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
         dims2 = dims
         out_dims = dims
     else:
-        dims1 = dims[0]
-        dims2 = dims[1]
-        out_dims = [dims[0][0], dims[1][1]]
-    return xr.apply_ufunc(
+        rename = True
+        dim11, dim12 = dims[0]
+        dim21, dim22 = dims[1]
+        da = da.rename({dim11: "__aux_dim11__", dim12: "__aux_dim12__"})
+        db = db.rename({dim21: "__aux_dim21__", dim22: "__aux_dim22__"})
+        dims1 = ["__aux_dim11__", "__aux_dim12__"]
+        dims2 = ["__aux_dim21__", "__aux_dim22__"]
+        out_dims = ["__aux_dim11__", "__aux_dim22__"]
+    matmul_aux = xr.apply_ufunc(
         np.matmul,
         da,
         db,
@@ -387,6 +398,11 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
         output_core_dims=[out_dims],
         **kwargs,
     )
+    if rename:
+        return matmul_aux.rename(
+            __aux_dim11__=dim11, __aux_dim22__=dim22 + out_append if dim22 == dim11 else dim22
+        )
+    return matmul_aux
 
 
 def matrix_transpose(da, dims):
