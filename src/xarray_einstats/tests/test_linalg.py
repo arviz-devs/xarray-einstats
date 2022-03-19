@@ -146,10 +146,46 @@ class TestWrappers:
         assert out.shape == matrices.shape
         assert out.dims == matrices.dims
 
-    def test_matmul(self, matrices):
+    def test_matmul_dims2(self, matrices):
         out = matmul(matrices, matrices, dims=("dim", "dim2"))
         assert out.shape == matrices.shape
         assert out.dims == matrices.dims
+
+    def test_matmul_dims3(self):
+        rng = np.random.default_rng(3)
+        da = xr.DataArray(rng.normal(size=(2,3,5,7)), dims=["m", "n", "l", "p"])
+        db = da.rename(m="m_bis")
+        out = matmul(da, db, dims=("m", "n", "m_bis"))
+        assert out.shape == (5, 7, 2, 2)
+        assert_dims_not_in_da(out, ["n"])
+        assert_dims_in_da(out, ("m", "m_bis", "l", "p"))
+
+    def test_matmul_dims3_rename(self):
+        rng = np.random.default_rng(3)
+        da = xr.DataArray(rng.normal(size=(2,3,5,7)), dims=["m", "n", "l", "p"])
+        out = matmul(da, da, dims=("m", "n", "m"))
+        assert out.shape == (5, 7, 2, 2)
+        assert_dims_not_in_da(out, ["n"])
+        assert_dims_in_da(out, ("m", "m2", "l", "p"))
+
+    def test_matmul_dims22(self):
+        rng = np.random.default_rng(3)
+        da = xr.DataArray(rng.normal(size=(2,3,5,7)), dims=["m", "n", "l", "p"])
+        db = da.rename(n="n_bis", m="n")
+        out = matmul(da, db, dims=(("m", "n"), ("n_bis", "n")))
+        assert out.shape == (5, 7, 2, 2)
+        assert_dims_not_in_da(out, ["n_bis"])
+        assert_dims_in_da(out, ["m", "n", "l", "p"])
+
+    def test_matmul_dims22_rename(self):
+        rng = np.random.default_rng(3)
+        da = xr.DataArray(rng.normal(size=(2,3,5,7)), dims=["m", "n", "l", "p"])
+        db = da.rename(n="n_bis")
+        out = matmul(da, db, dims=(("m", "n"), ("n_bis", "m")))
+        assert out.shape == (5, 7, 2, 2)
+        assert_dims_not_in_da(out, ["n_bis", "n"])
+        assert_dims_in_da(out, ["m", "m2", "l", "p"])
+
 
     def test_inv_matmul(self, matrices):
         aux = inv(matrices, dims=("dim", "dim2"))
