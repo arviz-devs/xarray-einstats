@@ -122,33 +122,56 @@ class TestRvWrappers:
         assert_allclose(out1, out2, atol=1e-15)
 
 
-@pytest.mark.parametrize("dims", ("match", ("chain", "draw"), None))
-def test_rankdata(data, dims):
-    da = data["score"]
-    out = rankdata(da, dims=dims)
-    if isinstance(dims, str):
-        rank_size = len(da[dims])
-    elif dims is None:
-        rank_size = da.size
-    else:
-        rank_size = np.prod([len(da[dim]) for dim in dims])
-    assert np.all(out <= rank_size)
+@pytest.mark.parametrize("xr_obj", ("DataArray", "Dataset"))
+class TestStats:
+    @pytest.mark.parametrize("dims", ("chain", ("chain", "draw"), None))
+    def test_rankdata(self, data, dims, xr_obj):
+        if xr_obj == "DataArray":
+            xr_in = data["score"]
+        else:
+            if dims is None:
+                pytest.skip("rankdata doesn't support Dataset input and dims=None")
+            xr_in = data[["mu", "sigma"]]
+        xr_out = rankdata(xr_in, dims=dims)
+        if xr_obj == "DataArray":
+            assert isinstance(xr_out, xr.DataArray)
+            xr_out = xr_out.to_dataset()
+            xr_in = xr_in.to_dataset()
+        for var_name in xr_in.data_vars:
+            da = xr_in[var_name]
+            out = xr_out[var_name]
+            if isinstance(dims, str):
+                rank_size = len(da[dims])
+            elif dims is None:
+                rank_size = da.size
+            else:
+                rank_size = np.prod([len(da[dim]) for dim in dims])
+            assert np.all(out <= rank_size)
 
-
-@pytest.mark.parametrize("dims", ("team", ("chain", "draw"), None))
-@pytest.mark.parametrize(
-    "func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew, median_abs_deviation)
-)
-def test_reduce_function(data, dims, func):
-    da = data["mu"]
-    out = func(da, dims=dims)
-    if dims is None:
-        dims = da.dims
-    elif isinstance(dims, str):
-        dims = [dims]
-    expected_dims = [dim for dim in da.dims if dim not in dims]
-    assert_dims_in_da(out, expected_dims)
-    assert_dims_not_in_da(out, dims)
+    @pytest.mark.parametrize("dims", ("chain", ("chain", "draw"), None))
+    @pytest.mark.parametrize(
+        "func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew, median_abs_deviation)
+    )
+    def test_reduce_function(self, data, dims, func, xr_obj):
+        if xr_obj == "DataArray":
+            xr_in = data["mu"]
+        else:
+            xr_in = data[["mu", "sigma"]]
+        xr_out = func(xr_in, dims=dims)
+        if xr_obj == "DataArray":
+            assert isinstance(xr_out, xr.DataArray)
+            xr_out = xr_out.to_dataset()
+            xr_in = xr_in.to_dataset()
+        for var_name in xr_in.data_vars:
+            da = xr_in[var_name]
+            out = xr_out[var_name]
+            if dims is None:
+                dims = da.dims
+            elif isinstance(dims, str):
+                dims = [dims]
+            expected_dims = [dim for dim in da.dims if dim not in dims]
+            assert_dims_in_da(out, expected_dims)
+            assert_dims_not_in_da(out, dims)
 
 
 def test_mad_da_scale(data):
