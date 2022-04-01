@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased (v0.x.x)
+## Unreleased (v0.2.0)
 ### New Features
 * Added `skew`, `kurtosis` and `median_abs_deviation` to `stats` module {pull}`3`, {pull}`4`
 * Improve flexibility and autorenaming in `matmul` {pull}`8`

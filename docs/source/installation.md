@@ -3,19 +3,44 @@
 
 You can install `xarray-eistats` with
 
+::::{tab-set}
+:::{tab-item} Stable
+:sync: stable
+
+```
+pip install xarray-einstats
+```
+:::
+:::{tab-item} Development
+:sync: dev
+
 ```
 pip install xarray-einstats @ git+https://github.com/arviz-devs/xarray-einstats
 ```
+:::
+::::
 
-or with
+or, to install some of its optional dependencies, with
+
+::::{tab-set}
+:::{tab-item} Stable
+:sync: stable
+
+```
+pip install "xarray-einstats[<option>]"
+```
+:::
+:::{tab-item} Development
+:sync: dev
 
 ```
 pip install "xarray-einstats[<option>] @ git+https://github.com/arviz-devs/xarray-einstats"
 ```
+:::
+::::
 
-in case you want to install some optional dependencies, you can install multiple bundles
-of optional dependencies separating them with commas. Thus, to install all user facing
-optional dependencies you should use `xarray-einstats[einops,numba]`
+you can install multiple bundles of optional dependencies separating them with commas.
+Thus, to install all user facing optional dependencies you should use `xarray-einstats[einops,numba]`
 
 After installation, independently of the command chosen,
 you can import it with `import xarray_einstats`.
