@@ -2,6 +2,16 @@
 
 ## Unreleased (v0.x.x)
 ### New Features
+
+### Maintenance and fixes
+
+### Documentation
+
+### Developer facing changes
+
+
+## v0.2.0 (2022 Apr 2)
+### New Features
 * Added `skew`, `kurtosis` and `median_abs_deviation` to `stats` module {pull}`3`, {pull}`4`
 * Improve flexibility and autorenaming in `matmul` {pull}`8`
 
@@ -16,6 +26,7 @@
 * Added background/explanation page for the stats module. {pull}`5`
 * Improve citation guidance {pull}`6`
 * Add examples of summary stats usage on `xarray.Dataset` {pull}`9`
+* Update the installation instructions with stable and development commands {pull}`10`
 
 ### Developer facing changes
 * Added how-to release guide

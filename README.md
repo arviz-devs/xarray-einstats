@@ -9,7 +9,7 @@
 
 Stats, linear algebra and einops for xarray
 
-> ⚠️  **Caution: This project is still in a very early development stage**
+> ⚠️  **Caution: This project is still in an early development stage**
 
 ## Installation
 

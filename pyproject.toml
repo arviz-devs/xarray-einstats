@@ -54,6 +54,7 @@ doc = [
     "sphinx>=4",
     "jupyter-sphinx",
     "sphinx-design",
+    "watermark",
 ]
 
 [tool.black]
