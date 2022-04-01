@@ -16,6 +16,7 @@
 * Added background/explanation page for the stats module. {pull}`5`
 * Improve citation guidance {pull}`6`
 * Add examples of summary stats usage on `xarray.Dataset` {pull}`9`
+* Update the installation instructions with stable and development commands {pull}`10`
 
 ### Developer facing changes
 * Added how-to release guide
