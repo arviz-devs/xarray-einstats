@@ -1,6 +1,7 @@
 # xarray-einstats
 
 [![Documentation Status](https://readthedocs.org/projects/xarray-einstats/badge/?version=latest)](https://xarray-einstats.readthedocs.io/en/latest/?badge=latest)
+[![Run tests](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml/badge.svg)](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
 [![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)

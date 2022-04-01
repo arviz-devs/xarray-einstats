@@ -291,7 +291,7 @@ size : int of sequence of ints, optional
     of handling all alignment and broadcasting for you.
 random_state : optional
     Passed as is to the wrapped scipy distribution
-dims : sequence of str, optional
+dims : str or sequence of str, optional
     Dimension names for the dimensions created due to ``size``. If present
     it must have the same length as ``size``.
 apply_kwargs : dict, optional
