@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.2 (2022 Apr 3)
+### Maintenance and fixes
+* Add license file to `pyproject.toml` and remove ignored manifest file {pull}`13`
+
 ## v0.2.1 (2022 Apr 3)
 ### Maintenance and fixes
 * Add manifest file to include the license and changelog in the pypi package {pull}`12`
