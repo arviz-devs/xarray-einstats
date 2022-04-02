@@ -1,14 +1,8 @@
 # Change Log
 
-## Unreleased (v0.x.x)
-### New Features
-
+## v0.2.1 (2022 Apr 3)
 ### Maintenance and fixes
-
-### Documentation
-
-### Developer facing changes
-
+* Add manifest file to include the license and changelog in the pypi package {pull}`12`
 
 ## v0.2.0 (2022 Apr 2)
 ### New Features
