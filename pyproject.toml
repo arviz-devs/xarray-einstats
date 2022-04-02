@@ -5,6 +5,8 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "xarray-einstats"
 readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
 authors = [
     {name = "ArviZ team", email = "arviz.devs@gmail.com"}
 ]
@@ -36,6 +38,7 @@ name = "xarray_einstats"
 source = "https://github.com/arviz-devs/xarray-einstats"
 tracker = "https://github.com/arviz-devs/xarray-einstats/issues"
 documentation = "https://xarray-einstats.readthedocs.io"
+funding = "https://opencollective.com/arviz"
 
 [project.optional-dependencies]
 einops = [ "einops" ]
