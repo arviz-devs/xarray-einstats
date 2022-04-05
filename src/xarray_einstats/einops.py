@@ -223,8 +223,15 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     missing_in_dims = [dim for dim in da_dims if dim not in in_names]
     expected_missing = set(out_dims).union(in_names).difference(in_dims)
     missing_out_dims = [dim for dim in da_dims if dim not in expected_missing]
-    pattern = f"{handler.get_names(missing_in_dims)} {in_pattern} ->\
-        {handler.get_names(missing_out_dims)} {out_pattern}"
+
+    # avoid using dimensions as core dims unnecesarly
+    non_core_dims = [dim for dim in missing_in_dims if dim in missing_out_dims]
+    missing_in_dims = [dim for dim in missing_in_dims if dim not in non_core_dims]
+    missing_out_dims = [dim for dim in missing_out_dims if dim not in non_core_dims]
+
+    non_core_pattern = handler.get_names(non_core_dims)
+    pattern = f"{non_core_pattern} {handler.get_names(missing_in_dims)} {in_pattern} ->\
+        {non_core_pattern} {handler.get_names(missing_out_dims)} {out_pattern}"
 
     axes_lengths = {
         handler.rename_kwarg(k): v for k, v in kwargs.items() if k in out_names + out_dims
