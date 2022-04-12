@@ -9,7 +9,7 @@ Details about the exact command are available at :ref:`installation`
 import einops
 import xarray as xr
 
-__all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce"]
+__all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce", "DaskBackend"]
 
 
 class DimHandler:
@@ -402,3 +402,38 @@ def raw_reduce(da, pattern, reduction, **kwargs):
         in_dims = None
     out_dims = translate_pattern(out_pattern)
     return reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, **kwargs)
+
+class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protected-access
+    """ Base backend class, major part of methods are only for debugging purposes. """
+    # pylint: disable=no-self-use
+    framework_name = "dask"
+
+    def __init__(self):
+        import dask.array as dsar
+        self.dsar = dsar
+
+    def is_appropriate_type(self, tensor):
+        """ helper method should recognize tensors it can handle """
+        return isinstance(tensor, self.dsar.core.Array)
+
+    def from_numpy(self, x):
+        raise self.dsar.array(x)
+
+    def to_numpy(self, x):
+        raise x.compute()
+
+    def arange(self, start, stop):
+        # supplementary method used only in testing, so should implement CPU version
+        raise self.dsar.arange(start, stop)
+
+    def stack_on_zeroth_dimension(self, tensors: list):
+        return self.dsar.stack(tensors)
+
+    def tile(self, x, repeats):
+        return self.dsar.tile(x, repeats)
+
+    def is_float_type(self, x):
+        return x.dtype in ('float16', 'float32', 'float64', 'float128')
+
+    def add_axis(self, x, new_position):
+        return self.dsar.expand_dims(x, new_position)
