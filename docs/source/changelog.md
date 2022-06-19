@@ -1,5 +1,12 @@
 # Change Log
 
+## v.0.x.x (Unreleased)
+### New features
+* Add `DaskBackend` to support using einops functions on Dask backed DataArrays {pull}`14`
+
+### Documentation
+* Add dask support guide {pull}`14`
+
 ## v0.2.2 (2022 Apr 3)
 ### Maintenance and fixes
 * Add license file to `pyproject.toml` and remove ignored manifest file {pull}`13`
