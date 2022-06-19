@@ -9,7 +9,7 @@ Details about the exact command are available at :ref:`installation`
 import einops
 import xarray as xr
 
-__all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce"]
+__all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce", "DaskBackend"]
 
 
 class DimHandler:
@@ -223,8 +223,15 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     missing_in_dims = [dim for dim in da_dims if dim not in in_names]
     expected_missing = set(out_dims).union(in_names).difference(in_dims)
     missing_out_dims = [dim for dim in da_dims if dim not in expected_missing]
-    pattern = f"{handler.get_names(missing_in_dims)} {in_pattern} ->\
-        {handler.get_names(missing_out_dims)} {out_pattern}"
+
+    # avoid using dimensions as core dims unnecesarly
+    non_core_dims = [dim for dim in missing_in_dims if dim in missing_out_dims]
+    missing_in_dims = [dim for dim in missing_in_dims if dim not in non_core_dims]
+    missing_out_dims = [dim for dim in missing_out_dims if dim not in non_core_dims]
+
+    non_core_pattern = handler.get_names(non_core_dims)
+    pattern = f"{non_core_pattern} {handler.get_names(missing_in_dims)} {in_pattern} ->\
+        {non_core_pattern} {handler.get_names(missing_out_dims)} {out_pattern}"
 
     axes_lengths = {
         handler.rename_kwarg(k): v for k, v in kwargs.items() if k in out_names + out_dims
@@ -395,3 +402,58 @@ def raw_reduce(da, pattern, reduction, **kwargs):
         in_dims = None
     out_dims = translate_pattern(out_pattern)
     return reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, **kwargs)
+
+
+class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protected-access
+    """Dask backend class for einops.
+
+    It should be imported before using functions of :mod:`xarray_einstats.einops`
+    on Dask backed DataArrays.
+    It doesn't need to be initialized or used explicitly
+
+    Notes
+    -----
+    Class created from the advise on
+    `issue einops#120 <https://github.com/arogozhnikov/einops/issues/120>`_ about Dask support.
+    And from reading
+    `einops/_backends <https://github.com/arogozhnikov/einops/blob/master/einops/_backends.py>`_,
+    the source of the AbstractBackend class of which DaskBackend is a subclass.
+    """
+
+    # pylint: disable=no-self-use
+    framework_name = "dask"
+
+    def __init__(self):
+        """Initialize DaskBackend.
+
+        Contains the imports to avoid errors when dask is not installed
+        """
+        import dask.array as dsar
+
+        self.dsar = dsar
+
+    def is_appropriate_type(self, tensor):
+        """Recognizes tensors it can handle."""
+        return isinstance(tensor, self.dsar.core.Array)
+
+    def from_numpy(self, x):  # noqa: D102
+        return self.dsar.array(x)
+
+    def to_numpy(self, x):  # noqa: D102
+        return x.compute()
+
+    def arange(self, start, stop):  # noqa: D102
+        # supplementary method used only in testing, so should implement CPU version
+        return self.dsar.arange(start, stop)
+
+    def stack_on_zeroth_dimension(self, tensors: list):  # noqa: D102
+        return self.dsar.stack(tensors)
+
+    def tile(self, x, repeats):  # noqa: D102
+        return self.dsar.tile(x, repeats)
+
+    def is_float_type(self, x):  # noqa: D102
+        return x.dtype in ("float16", "float32", "float64", "float128")
+
+    def add_axis(self, x, new_position):  # noqa: D102
+        return self.dsar.expand_dims(x, new_position)

@@ -104,11 +104,11 @@ html_theme_options = {
 }
 
 intersphinx_mapping = {
-    "arviz": ("https://arviz-devs.github.io/arviz", None),
+    "arviz": ("https://python.arviz.org/en/latest/", None),
     "dask": ("https://docs.dask.org/en/latest/", None),
     "numba": ("https://numba.pydata.org/numba-doc/dev", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    "xarray": ("http://xarray.pydata.org/en/stable/", None),
+    "xarray": ("http://docs.xarray.dev/en/stable/", None),
 }
