@@ -110,5 +110,6 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    "xarray": ("http://docs.xarray.dev/en/stable/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "xhistogram": ("https://xhistogram.readthedocs.io/en/latest", None),
 }

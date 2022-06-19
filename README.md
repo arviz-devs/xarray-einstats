@@ -319,6 +319,8 @@ Here we list some similar projects we know of. Note that all of
 them are complementary and don't overlap:
 * [xr-scipy](https://xr-scipy.readthedocs.io/en/latest/index.html)
 * [xarray-extras](https://xarray-extras.readthedocs.io/en/latest/)
+* [xhistogram](https://xhistogram.readthedocs.io/en/latest/)
+* [xrft](https://xrft.readthedocs.io/en/latest/)
 
 ## Cite xarray-einstats
 If you use this software, please cite it using the following template and the version
