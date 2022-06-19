@@ -6,6 +6,8 @@
 
 ### Documentation
 * Add dask support guide {pull}`14`
+* Update requirements following [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html)
+  and [SPEC 0](https://scientific-python.org/specs/spec-0000/) {pull}`19`
 
 ## v0.2.2 (2022 Apr 3)
 ### Maintenance and fixes
