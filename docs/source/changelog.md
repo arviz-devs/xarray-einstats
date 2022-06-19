@@ -5,7 +5,8 @@
 * Add `DaskBackend` to support using einops functions on Dask backed DataArrays {pull}`14`
 
 ### Documentation
-* Add dask support guide {pull}`14`
+* Add Dask support guide {pull}`14`
+* Add references to xhistogram and xrft in docs {pull}`20`
 
 ## v0.2.2 (2022 Apr 3)
 ### Maintenance and fixes
