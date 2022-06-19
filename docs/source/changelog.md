@@ -1,6 +1,6 @@
 # Change Log
 
-## v.0.x.x (Unreleased)
+## v.0.3.0 (2022 Jun 19)
 ### New features
 * Add `DaskBackend` to support using einops functions on Dask backed DataArrays {pull}`14`
 
