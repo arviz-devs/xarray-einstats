@@ -8,4 +8,5 @@ In construction
 stats_tutorial
 linalg_tutorial
 einops-basics-port
+dask_support
 :::
