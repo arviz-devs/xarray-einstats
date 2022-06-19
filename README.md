@@ -4,7 +4,8 @@
 [![Run tests](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml/badge.svg)](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
-[![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5895451.svg)](https://doi.org/10.5281/zenodo.5895451)
+
 
 
 Stats, linear algebra and einops for xarray
@@ -326,7 +327,7 @@ them are complementary and don't overlap:
 If you use this software, please cite it using the following template and the version
 specific DOI provided by Zenodo. Click on the badge to go to the Zenodo page
 and select the DOI corresponding to the version you used
-[![DOI](https://zenodo.org/badge/447326384.svg)](https://zenodo.org/badge/latestdoi/447326384)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5895451.svg)](https://doi.org/10.5281/zenodo.5895451)
 
 * Oriol Abril-Pla. (2022). arviz-devs/xarray-einstats `<version>`. Zenodo. `<version_doi>`
 
