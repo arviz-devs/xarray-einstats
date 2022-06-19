@@ -91,6 +91,10 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     Note how the return is a single DataArray, not an array with the histogram and another
     with the bin edges. That is because the bin edges are included as coordinate values.
 
+    See Also
+    --------
+    xhistogram.xarray.histogram :
+        Alternative implementation (with some different features) of xarray aware histogram.
     """
     # TODO: make dask compatible even when bin edges are not passed manually
     if bins is None:
