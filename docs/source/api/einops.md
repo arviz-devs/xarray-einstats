@@ -14,3 +14,10 @@
   raw_reduce
 ```
 
+```{eval-rst}
+.. autosummary::
+  :toctree: generated/
+  :template: class-no-members
+
+  DaskBackend
+```
