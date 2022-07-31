@@ -10,7 +10,6 @@ from xarray_einstats import tutorial
 from xarray_einstats.stats import (
     XrContinuousRV,
     XrDiscreteRV,
-    multivariate_normal,
     circmean,
     circstd,
     circvar,
@@ -18,6 +17,7 @@ from xarray_einstats.stats import (
     hmean,
     kurtosis,
     median_abs_deviation,
+    multivariate_normal,
     rankdata,
     skew,
 )
@@ -122,12 +122,14 @@ class TestRvWrappers:
         assert_dims_in_da(out2, expected_dims)
         assert_allclose(out1, out2, atol=1e-15)
 
-@pytest.mark.parametrize("vals", (([1, 2], [[1, .9], [.9, 3]]), ([-3, 0], [[2, .3], [.3, 2]])))
+
+@pytest.mark.parametrize("vals", (([1, 2], [[1, 0.9], [0.9, 3]]), ([-3, 0], [[2, 0.3], [0.3, 2]])))
 class TestMvNormal:
     """Test multivariate normal class.
 
     Tests are quite ad-hoc and empirical.
     """
+
     def test_rvs_method(self, vals):
         mean = xr.DataArray(vals[0], dims=["obs"])
         cov = xr.DataArray(vals[1], dims=["obs", "obs2"])
@@ -137,8 +139,8 @@ class TestMvNormal:
         assert_allclose(
             cov,
             xr.cov(samples, samples.rename(obs="obs2"), dim=("chain", "draw")),
-            atol=.1,
-            rtol=1e-2
+            atol=0.1,
+            rtol=1e-2,
         )
 
     def test_pdf_method(self, vals):
@@ -149,8 +151,8 @@ class TestMvNormal:
         points = [[0, 0], [1, 3], [-1, 2], [-3, -2]]
         x = xr.DataArray(points, dims=["point", "obs"])
         pdf_xr = dist.pdf(x)
-        for i, p in enumerate(points):
-            assert np.allclose(dist_sp.pdf(p), pdf_xr.isel(point=i))
+        for i, point in enumerate(points):
+            assert np.allclose(dist_sp.pdf(point), pdf_xr.isel(point=i))
 
 
 @pytest.mark.parametrize("xr_obj", ("DataArray", "Dataset"))
