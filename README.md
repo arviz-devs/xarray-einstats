@@ -7,10 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5895451.svg)](https://doi.org/10.5281/zenodo.5895451)
 
 
-
 Stats, linear algebra and einops for xarray
-
-> ⚠️  **Caution: This project is still in an early development stage**
 
 ## Installation
 

@@ -22,6 +22,7 @@ but the output will be a numpy array.
 
   XrContinuousRV
   XrDiscreteRV
+  multivariate_normal
 ```
 
 ## Summary statistics
