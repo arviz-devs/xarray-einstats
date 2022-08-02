@@ -6,6 +6,7 @@ from collections.abc import Sequence
 import numpy as np
 import xarray as xr
 from scipy import stats
+from numpy.linalg import LinAlgError
 
 from .linalg import cholesky, eigh
 
@@ -363,7 +364,12 @@ class multivariate_normal:  # pylint: disable=invalid-name
         mean, cov, dims = self._process_inputs(mean, cov, dims)
         dim1, dim2 = dims
 
-        cov_chol = cholesky(cov, dims=dims)
+        try:
+            cov_chol = cholesky(cov, dims=dims)
+        except LinAlgError:
+            k = len(cov[dim1])
+            eye = xr.DataArray(np.eye(k), dims=list(dims))
+            cov_chol = cholesky(cov + 1e-10*eye, dims=dims)
         std_norm = XrContinuousRV(stats.norm, xr.zeros_like(mean.rename({dim1: dim2})), 1)
         samples = std_norm.rvs(size=size, dims=rv_dims, random_state=random_state)
         return mean + xr.dot(cov_chol, samples, dims=dim2)
