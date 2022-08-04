@@ -1,8 +1,4 @@
-"""
-xarray-einstats.
-
-Stats, linear algebra and einops for xarray
-"""
+"""Stats, linear algebra and einops for xarray."""
 
 from __future__ import annotations
 
