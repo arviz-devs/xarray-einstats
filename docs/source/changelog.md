@@ -4,6 +4,9 @@
 ### New features
 * Add `multivariate_normal` distribution class {pull}`23`
 
+### Maintenance and fixes
+* Update pyproject.toml to support building the package with both `flit` and `setuptools` {pull}`26`
+
 ## v.0.3.0 (2022 Jun 19)
 ### New features
 * Add `DaskBackend` to support using einops functions on Dask backed DataArrays {pull}`14`

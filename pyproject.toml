@@ -4,6 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "xarray-einstats"
+description = "Stats, linear algebra and einops for xarray"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
@@ -23,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
 ]
-dynamic = ["version", "description"]
+dynamic = ["version"]
 dependencies = [
   "numpy>=1.19",
   "scipy>=1.5",
@@ -32,6 +33,9 @@ dependencies = [
 
 [tool.flit.module]
 name = "xarray_einstats"
+
+[tool.setuptools.dynamic]
+version = {attr = "xarray_einstats.__version__"}
 
 [project.urls]
 source = "https://github.com/arviz-devs/xarray-einstats"
