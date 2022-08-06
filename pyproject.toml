@@ -50,6 +50,7 @@ test = [
     "hypothesis",
     "pytest",
     "pytest-cov",
+    "packaging",
 ]
 doc = [
     "furo",

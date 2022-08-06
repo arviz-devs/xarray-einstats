@@ -1,4 +1,33 @@
 # Contributing How-to Guides
+We recommend having already gone over the {ref}`contributing_overview`
+page before reading the sections below.
+
+## Running the test suite locally
+This section covers how to run the test suite locally.
+That is, without using `tox` (as recommended on the {ref}`contributing_overview`
+or triggering CI by opening a pull request on GitHub.
+
+You should follow these steps for example if you want to reproduce and fix a bug
+that depends on the NumPy version and therefore need to test `xarray-einstats`
+on an environment that has a specific set of dependencies installed.
+
+1. Install xarray-einstats in editable mode in the desired environment:
+
+   ```bash
+   pip install -e ".[test,einops,numba]"
+   ```
+
+   This will install xarray-einstats in editable mode together with all optional
+   dependencies and all testing related dependencies.
+
+1. Run pytest
+
+   ```bash
+   pytest tests/ --cov --cov-report term
+   ```
+
+   This will run the tests in the tests suite and coverage analysis and
+   print all the results on the terminal.
 
 ## Making a new release
 
