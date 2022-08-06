@@ -86,7 +86,7 @@ testpaths = [
 ]
 
 [tool.coverage.run]
-source = ["src/xarray_einstats"]
+source = ["xarray_einstats"]
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
