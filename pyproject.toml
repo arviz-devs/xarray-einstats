@@ -84,3 +84,17 @@ convention = "numpy"
 testpaths = [
     "tests",
 ]
+
+[tool.coverage.run]
+source = ["src/xarray_einstats"]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing _attemp_default_dims in linalg
+    "dims = _attempt_default_dims",
+]
+
