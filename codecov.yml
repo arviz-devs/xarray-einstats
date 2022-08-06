@@ -2,9 +2,6 @@ codecov:
     notify:
         after_n_builds: 3
 
-ignore:
-  - "src/xarray_einstats/tests/*"
-
 comment:
     behavior: default
     branches:

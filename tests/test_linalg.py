@@ -1,6 +1,7 @@
 # pylint: disable=redefined-outer-name, no-self-use
 """Test the linalg module."""
 import numpy as np
+import packaging
 import pytest
 import xarray as xr
 from xarray.testing import assert_allclose, assert_equal
@@ -219,7 +220,10 @@ class TestWrappers:
         )
         assert_allclose(hermitian, chol_chol_t)
 
-    @pytest.mark.skip("Requires numpy>=1.22, which is not yet supported by numba")
+    @pytest.mark.skipif(
+        packaging.version.Version(np.__version__) < packaging.version.Version("1.22"),
+        reason="Requires numpy>=1.22 to support batched qr",
+    )
     def test_qr(self, matrices):
         q_da, r_da = qr(matrices, dims=("dim", "dim2"))
         assert_allclose(matrices, matmul(q_da, r_da, dims=("dim", "dim2")))

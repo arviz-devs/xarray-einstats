@@ -6,6 +6,10 @@
 
 ### Maintenance and fixes
 * Update pyproject.toml to support building the package with both `flit` and `setuptools` {pull}`26`
+* Improve testing structure and configuration {pull}`28`
+
+### Documentation
+* Add a section on running tests locally in contributing docs {pull}`28`
 
 ## v.0.3.0 (2022 Jun 19)
 ### New features
