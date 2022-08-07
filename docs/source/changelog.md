@@ -10,6 +10,7 @@
 
 ### Documentation
 * Add a section on running tests locally in contributing docs {pull}`28`
+* Add a getting started page to the docs {pull}`30`
 
 ## v.0.3.0 (2022 Jun 19)
 ### New features
