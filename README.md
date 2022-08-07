@@ -330,7 +330,7 @@ and select the DOI corresponding to the version you used
 
 or in bibtex format:
 
-```bibtex
+```none
 @software{xarray_einstats2022,
   author       = {Abril-Pla, Oriol},
   title        = {{xarray-einstats}},

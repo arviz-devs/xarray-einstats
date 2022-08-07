@@ -53,20 +53,21 @@ exclude_patterns = [
 ]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
-default_role = "code"
+default_role = "autolink"
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
 
 extlinks = {
-    "issue": ("https://github.com/arviz-devs/xarray-einstats/issues/%s", "GH#"),
-    "pull": ("https://github.com/arviz-devs/xarray-einstats/pull/%s", "PR#"),
+    "issue": ("https://github.com/arviz-devs/xarray-einstats/issues/%s", "GH#%s"),
+    "pull": ("https://github.com/arviz-devs/xarray-einstats/pull/%s", "PR#%s"),
 }
 
 # -- Options for extensions
 
-jupyter_execute_notebooks = "auto"
-execution_excludepatterns = ["*.ipynb"]
+nb_execution_mode = "auto"
+nb_execution_excludepatterns = ["*.ipynb"]
+nb_kernel_rgx_aliases = {".*": "python3"}
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "amsmath"]
 
 autosummary_generate = True
@@ -105,6 +106,7 @@ html_theme_options = {
 
 intersphinx_mapping = {
     "arviz": ("https://python.arviz.org/en/latest/", None),
+    "arviz_org": ("https://www.arviz.org/en/latest/", None),
     "dask": ("https://docs.dask.org/en/latest/", None),
     "numba": ("https://numba.pydata.org/numba-doc/dev", None),
     "numpy": ("https://numpy.org/doc/stable/", None),

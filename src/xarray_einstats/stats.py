@@ -400,8 +400,9 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
     if dims is None:
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
-        da = da.stack(__aux_dim__=dims)
-        core_dims = ["__aux_dim__"]
+        aux_dim = f"__aux_dim__:{','.join(dims)}"
+        da = da.stack({aux_dim: dims})
+        core_dims = [aux_dim]
         unstack = True
     else:
         core_dims = [dims]
@@ -414,7 +415,7 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
         **kwargs,
     )
     if unstack:
-        return out_da.unstack("__aux_dim__")
+        return out_da.unstack(aux_dim)
     return out_da
 
 
@@ -427,8 +428,9 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
     if dims is None:
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
-        da = da.stack(__aux_dim__=dims)
-        core_dims = ["__aux_dim__"]
+        aux_dim = f"__aux_dim__:{','.join(dims)}"
+        da = da.stack({aux_dim: dims})
+        core_dims = [aux_dim]
     else:
         core_dims = [dims]
     out_da = xr.apply_ufunc(
@@ -573,8 +575,9 @@ def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None
     if dims is None:
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
-        da = da.stack(__aux_dim__=dims)
-        core_dims = ["__aux_dim__"]
+        aux_dim = f"__aux_dim__:{','.join(dims)}"
+        da = da.stack({aux_dim: dims})
+        core_dims = [aux_dim]
     else:
         core_dims = [dims]
 

@@ -6,6 +6,7 @@
 :hidden:
 
 installation
+getting_started
 tutorials/index
 api/index
 background/index
