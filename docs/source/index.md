@@ -2,6 +2,33 @@
 
 **Stats, linear algebra and einops for xarray**
 
+
+:::::{grid} 1
+::::{grid-item}
+:child-align: center
+:child-direction: row
+
+:::{button-ref} installation
+:color: primary
+:outline:
+:ref-type: doc
+
+Install xarray-einstats
+:::
+
+&emsp;
+
+:::{button-ref} getting_started
+:color: primary
+:outline:
+:ref-type: doc
+
+Get started
+:::
+::::
+:::::
+
+
 ## Overview
 As stated in their website:
 
@@ -63,10 +90,10 @@ be used as inputs.
 :::{button-ref} getting_started
 :color: primary
 :outline:
-:ref-type: myst
+:ref-type: doc
 :align: center
 
-Get started with xarray-einstats {material-round}`start;2em`
+Get started with xarray-einstats
 :::
 
 ## Similar projects
