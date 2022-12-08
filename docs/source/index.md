@@ -60,6 +60,15 @@ be used as inputs.
 ::::
 :::::
 
+::::{div} sd-text-center
+:::{button-ref} getting_started
+:color: primary
+:outline:
+
+Get started with xarray-einstats {material-round}`start;2em`
+:::
+::::
+
 ## Similar projects
 Here we list some similar projects we know of. Note that all of
 them are complementary and don't overlap:
