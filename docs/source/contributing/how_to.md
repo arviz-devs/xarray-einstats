@@ -48,7 +48,16 @@ on an environment that has a specific set of dependencies installed.
    go to [readthedocs](https://readthedocs.org/projects/xarray-einstats/) and
    add it.
 1. Bump the minor version, set the patch version to 0 and add the `dev` flag.
-   It should look like `0.2.0.dev0`. Also add the Unreleased section in
-   the changelog again.
+   It should look like `0.2.0.dev0`.
 1. Update the [changelog](https://github.com/arviz-devs/xarray-einstats/blob/main/docs/source/changelog.md)
-   to add the unreleased section back
+   to add the unreleased section back. Here is a template to copy paste:
+
+   ```
+   ## v0.x.x (Unreleased)
+   ### New features
+
+   ### Maintenance and fixes
+
+   ### Documentation
+   ```
+
