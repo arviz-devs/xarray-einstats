@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.x.x (Unreleased)
+### New features
+
+### Maintenance and fixes
+
+### Documentation
+
 ## v0.4.0 (2022 Dec 9)
 ### New features
 * Add `multivariate_normal` distribution class {pull}`23`
