@@ -16,3 +16,19 @@ linalg
 einops
 numba
 :::
+
+## Top level functions
+Moreover, it also provides some convenience functions in the top-level namespace:
+
+```{eval-rst}
+.. automodule:: xarray_einstats
+```
+
+```{eval-rst}
+.. autosummary::
+  :toctree: generated/
+
+  empty_ref
+  ones_ref
+  zeros_ref
+```

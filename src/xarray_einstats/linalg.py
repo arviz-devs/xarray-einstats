@@ -18,6 +18,7 @@ __all__ = [
     "matrix_rank",
     "slogdet",
     "trace",
+    "diagonal",
     "solve",
     "inv",
 ]
@@ -499,8 +500,7 @@ def svd(
         dims = _attempt_default_dims("svd", da.dims)
     m_dim, n_dim = dims
     m, n = len(da[m_dim]), len(da[n_dim])
-    k, k_dim = (m, m_dim) if m >= n else (n, n_dim)
-    k_dim = m_dim if k == m else n_dim
+    k, k_dim = (m, m_dim) if m <= n else (n, n_dim)
     s_dims = [k_dim]
     if full_matrices:
         u_dims = [m_dim, m_dim + out_append]
@@ -660,6 +660,25 @@ def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
         dims = _attempt_default_dims("trace", da.dims)
     trace_kwargs = dict(offset=offset, dtype=dtype, out=out, axis1=-2, axis2=-1)
     return xr.apply_ufunc(np.trace, da, input_core_dims=[dims], kwargs=trace_kwargs, **kwargs)
+
+
+def diagonal(da, dims=None, *, offset=0, **kwargs):
+    """Wrap :func:`numpy.diagonal`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    """
+    if dims is None:
+        dims = _attempt_default_dims("diagonal", da.dims)
+    diagonal_kwargs = dict(offset=offset, axis1=-2, axis2=-1)
+    out_dims = dims[0] if offset == 0 else "diag_id"
+    return xr.apply_ufunc(
+        np.diagonal,
+        da,
+        input_core_dims=[dims],
+        output_core_dims=[out_dims],
+        kwargs=diagonal_kwargs,
+        **kwargs,
+    )
 
 
 def solve(da, db, dims=None, **kwargs):

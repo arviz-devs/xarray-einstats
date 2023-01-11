@@ -2,10 +2,14 @@
 
 ## v0.x.x (Unreleased)
 ### New features
+* Added `empty_ref`, `ones_ref` and `zeros_ref` DataArray creation helpers {pull}`37`
+* Added `linalg.diagonal` wrapper {pull}`37`
 
 ### Maintenance and fixes
+* Fix issue in `linalg.svd` for non-square matrices {pull}`37`
 
 ### Documentation
+* Ported NumPy tutorial on linear algebra with multidimensional arrays {pull}`37`
 
 ## v0.4.0 (2022 Dec 9)
 ### New features

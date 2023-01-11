@@ -53,6 +53,14 @@
   trace
 ```
 
+## Indexing
+```{eval-rst}
+.. autosummary::
+  :toctree: generated/
+
+  diagonal
+```
+
 ## Solving equations and inverting matrices
 ```{eval-rst}
 .. autosummary::
