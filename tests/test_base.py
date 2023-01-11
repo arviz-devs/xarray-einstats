@@ -2,14 +2,16 @@
 """Test top level functions."""
 import pytest
 
-from xarray_einstats import zeros_ref, ones_ref, empty_ref
-from xarray_einstats.tutorial import generate_mcmc_like_dataset, generate_matrices_dataarray
+from xarray_einstats import empty_ref, ones_ref, zeros_ref
+from xarray_einstats.tutorial import generate_matrices_dataarray, generate_mcmc_like_dataset
+
 from .utils import assert_dims_in_da, assert_dims_not_in_da
 
 
 @pytest.fixture(scope="module")
 def dataset():
     return generate_mcmc_like_dataset(324)
+
 
 @pytest.mark.parametrize("fun", (zeros_ref, ones_ref, empty_ref))
 class TestCreators:
