@@ -463,13 +463,13 @@ def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: n
         dims = _attempt_default_dims("qr", da.dims)
     m_dim, n_dim = dims
     m, n = len(da[m_dim]), len(da[n_dim])
-    k = min(m, n)
+    k, k_dim = (m, m_dim) if n >= m else (n, n_dim)
     mode = mode.lower()
     if mode == "reduced":
-        if m == k:
-            out_dims = [[m_dim, m_dim + out_append], [m_dim, n_dim]]
-        else:
-            out_dims = [[m_dim, n_dim], [n_dim, n_dim + out_append]]
+        out_dims = [
+            [m_dim, k_dim + (out_append if k_dim == m_dim else "")],
+            [k_dim, n_dim + (out_append if k_dim == n_dim else "")],
+        ]
     elif mode == "complete":
         out_dims = [[m_dim, m_dim + out_append], [m_dim, n_dim]]
     elif mode == "r":
@@ -670,7 +670,7 @@ def diagonal(da, dims=None, *, offset=0, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("diagonal", da.dims)
     diagonal_kwargs = dict(offset=offset, axis1=-2, axis2=-1)
-    out_dims = dims[0] if offset == 0 else "diag_id"
+    out_dims = [dims[0] if offset == 0 else "diag_id"]
     return xr.apply_ufunc(
         np.diagonal,
         da,

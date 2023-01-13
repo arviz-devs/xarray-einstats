@@ -1,4 +1,4 @@
-# pylint: disable=redefined-outer-name, no-self-use
+# pylint: disable=redefined-outer-name, no-self-use, too-many-public-methods
 """Test the linalg module."""
 import numpy as np
 import packaging
@@ -11,6 +11,7 @@ from xarray_einstats.linalg import (
     cholesky,
     cond,
     det,
+    diagonal,
     eig,
     eigh,
     eigvals,
@@ -228,11 +229,42 @@ class TestWrappers:
         q_da, r_da = qr(matrices, dims=("dim", "dim2"))
         assert_allclose(matrices, matmul(q_da, r_da, dims=("dim", "dim2")))
 
+    @pytest.mark.skipif(
+        packaging.version.Version(np.__version__) < packaging.version.Version("1.22"),
+        reason="Requires numpy>=1.22 to support batched qr",
+    )
+    def test_qr_non_square(self, matrices):
+        q_da, r_da = qr(matrices, dims=("experiment", "dim2"))
+        assert_allclose(
+            matrices,
+            matmul(
+                q_da, r_da, dims=[["experiment", "experiment2"], ["experiment", "dim2"]]
+            ).transpose(*matrices.dims),
+        )
+
     def test_svd(self, matrices):
-        u_da, s_da, vh_da = svd(matrices, dims=("dim", "dim2"))
+        u_da, s_da, vh_da = svd(matrices, dims=("dim", "dim2"), out_append="_bis")
+        s_full = xr.zeros_like(matrices)
+        idx = xr.DataArray(np.arange(len(matrices["dim"])), dims="pointwise_sel")
+        s_full.loc[{"dim": idx, "dim2": idx}] = s_da
         compare = matmul(
-            u_da * s_da.rename(dim="dim2"), vh_da, dims=("dim", "dim2", "dim22")
-        ).rename(dim22="dim2")
+            matmul(u_da, s_full, dims=[["dim", "dim_bis"], ["dim", "dim2"]]),
+            vh_da,
+            dims=("dim", "dim2", "dim2_bis"),
+        ).rename(dim2_bis="dim2")
+        assert_allclose(matrices, compare.transpose(*matrices.dims), atol=1e-13)
+
+    def test_svd_non_square(self, matrices):
+        u_da, s_da, vh_da = svd(matrices, dims=("experiment", "dim"), out_append="_bis")
+        s_full = xr.zeros_like(matrices)
+        # experiment is shorter than dim
+        idx = xr.DataArray(np.arange(len(matrices["experiment"])), dims="pointwise_sel")
+        s_full.loc[{"experiment": idx, "dim": idx}] = s_da.transpose("batch", "experiment", "dim2")
+        compare = matmul(
+            matmul(u_da, s_full, dims=[["experiment", "experiment_bis"], ["experiment", "dim"]]),
+            vh_da,
+            dims=("experiment", "dim", "dim_bis"),
+        ).rename(dim_bis="dim")
         assert_allclose(matrices, compare.transpose(*matrices.dims), atol=1e-13)
 
     def test_slogdet_det(self, matrices):
@@ -244,3 +276,11 @@ class TestWrappers:
         b = matrices.std("dim2")
         y = solve(matrices, b, dims=("dim", "dim2"))
         assert_allclose(b, xr.dot(matrices, y.rename(dim="dim2"), dims="dim2"), atol=1e-14)
+
+    def test_diagonal(self, matrices):
+        idx = xr.DataArray(np.arange(len(matrices["dim"])), dims="pointwise_sel")
+        diag = diagonal(matrices, dims=("dim", "dim2"))
+        diag_compare = (
+            matrices.isel(dim=idx, dim2=idx).rename(pointwise_sel="dim").transpose(*diag.dims)
+        )
+        assert_allclose(diag, diag_compare)
