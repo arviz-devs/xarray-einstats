@@ -82,6 +82,7 @@ numpydoc_xref_ignore = {"of", "or", "optional", "scalar"}
 singulars = ("int", "list", "dict", "float")
 numpydoc_xref_aliases = {
     "DataArray": ":class:`xarray.DataArray`",
+    "Dataset": ":class:`xarray.Dataset`",
     "pattern_list": "list of str, list or dict",
     "DimHandler": ":class:`~xarray_einstats.einops.DimHandler`",
     **{f"{singular}s": f":any:`{singular}s <{singular}>`" for singular in singulars},
