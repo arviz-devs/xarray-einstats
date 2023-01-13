@@ -12,7 +12,7 @@ __all__ = ["einsum", "raw_einsum", "einsum_path", "matmul", "zeros_ref", "ones_r
 __version__ = "0.5.0.dev0"
 
 
-def find_index(elem, to_search_in):
+def _find_index(elem, to_search_in):
     for i, da in enumerate(to_search_in):
         if elem in da.dims:
             return (i, elem)
@@ -22,7 +22,7 @@ def find_index(elem, to_search_in):
 def _create_ref(*args, dims, np_creator, dtype=None):
     if dtype is None and all(isinstance(arg, xr.DataArray) for arg in args):
         dtype = np.result_type(*[arg.dtype for arg in args])
-    ref_idxs = [find_index(dim, args) for dim in dims]
+    ref_idxs = [_find_index(dim, args) for dim in dims]
     shape = [len(args[idx][dim]) for idx, dim in ref_idxs]
     # TODO: keep non indexing coords?
     coords = {dim: args[idx][dim] for idx, dim in ref_idxs if dim in args[idx].coords}
