@@ -56,13 +56,15 @@ class TestRvWrappers:
     @pytest.mark.parametrize(
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
-    def test_eval_methods_dataarray(self, data, wrapper, method):
+    @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
+    def test_eval_methods_dataarray(self, data, wrapper, method, in_type):
+        par2 = 1 if in_type == "scalar" else data["sigma"]
         if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
+            dist = XrContinuousRV(stats.norm, data["mu"], par2)
             if "pxf" in method:
                 method = method.replace("x", "d")
         else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
+            dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
             if "pxf" in method:
                 method = method.replace("x", "m")
         meth = getattr(dist, method)
@@ -71,11 +73,13 @@ class TestRvWrappers:
         assert "plot_dim" in out.dims
 
     @pytest.mark.parametrize("dim_names", (None, ("name1", "name2")))
-    def test_rv_method(self, data, wrapper, dim_names):
+    @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
+    def test_rv_method(self, data, wrapper, dim_names, in_type):
+        par2 = 1 if in_type == "scalar" else data["sigma"]
         if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
+            dist = XrContinuousRV(stats.norm, data["mu"], par2)
         else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
+            dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
         out = dist.rvs(size=(2, 7), dims=dim_names)
         if dim_names is None:
             dim_names = ["rv_dim0", "rv_dim1"]
