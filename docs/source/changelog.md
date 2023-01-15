@@ -7,6 +7,7 @@
 
 ### Maintenance and fixes
 * Fix issue in `linalg.svd` for non-square matrices {pull}`37`
+* Fix evaluation of distribution methods (e.g. `.pdf`) on scalars {pull}`38` and {pull}`39`
 
 ### Documentation
 * Ported NumPy tutorial on linear algebra with multidimensional arrays {pull}`37`
