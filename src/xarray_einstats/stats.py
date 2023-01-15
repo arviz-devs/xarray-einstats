@@ -91,7 +91,15 @@ def _asdataarray(x_or_q, dim_name):
     """
     if isinstance(x_or_q, xr.DataArray):
         return x_or_q
-    return xr.DataArray(np.asarray(x_or_q), dims=[dim_name], coords={dim_name: np.asarray(x_or_q)})
+    x_or_q_ary = np.asarray(x_or_q)
+    if x_or_q_ary.ndim == 0:
+        return xr.DataArray(x_or_q_ary)
+    if x_or_q_ary.ndim == 1:
+        return xr.DataArray(x_or_q_ary, dims=[dim_name], coords={dim_name: np.asarray(x_or_q)})
+    raise ValueError(
+        "To evaluate distribution methods on data with >=2 dims,"
+        " the input needs to be a xarray.DataArray"
+    )
 
 
 def _wrap_method(method):
