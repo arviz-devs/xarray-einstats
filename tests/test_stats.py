@@ -35,6 +35,23 @@ class TestRvWrappers:
     @pytest.mark.parametrize(
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
+    def test_eval_methods_scalar(self, data, wrapper, method):
+        if wrapper == "continuous":
+            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
+            if "pxf" in method:
+                method = method.replace("x", "d")
+        else:
+            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
+            if "pxf" in method:
+                method = method.replace("x", "m")
+        meth = getattr(dist, method)
+        out = meth(0.9)
+        assert out.ndim == 3
+        assert_dims_not_in_da(out, ["quantile", "point"])
+
+    @pytest.mark.parametrize(
+        "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
+    )
     def test_eval_methods_array(self, data, wrapper, method):
         if wrapper == "continuous":
             dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
