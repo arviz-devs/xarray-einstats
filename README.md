@@ -4,6 +4,7 @@
 [![Run tests](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml/badge.svg)](https://github.com/arviz-devs/xarray-einstats/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/arviz-devs/xarray-einstats/branch/main/graph/badge.svg?token=78K2ZOJCVN)](https://codecov.io/gh/arviz-devs/xarray-einstats)
 [![PyPI](https://img.shields.io/pypi/v/xarray-einstats)](https://pypi.org/project/xarray-einstats)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/xarray-einstats.svg)](https://anaconda.org/conda-forge/xarray-einstats)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5895451.svg)](https://doi.org/10.5281/zenodo.5895451)
 
 
