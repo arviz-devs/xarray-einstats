@@ -33,6 +33,7 @@ on an environment that has a specific set of dependencies installed.
 
 ### Release preparation
 1. Create a new branch
+1. Check dependency version pins in `pyproject.toml`, they should follow [SPEC 0](https://scientific-python.org/specs/spec-0000/) roughly.
 1. Review the change log (`docs/source/changelog.md`). The unreleased section
    should be updated to the current version and release date _and not yet added_
 1. Update the version number in `__init__.py`. That is, remove the `dev` flag, it should not
