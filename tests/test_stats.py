@@ -16,6 +16,7 @@ from xarray_einstats.stats import (
     gmean,
     hmean,
     kurtosis,
+    logsumexp,
     median_abs_deviation,
     multivariate_normal,
     rankdata,
@@ -28,6 +29,11 @@ from .utils import assert_dims_in_da, assert_dims_not_in_da
 @pytest.fixture(scope="module")
 def data():
     return tutorial.generate_mcmc_like_dataset(3)
+
+
+@pytest.fixture(scope="module")
+def stacked_data(data):
+    return data["mu"].rename(chain="aux").expand_dims(aux2=2).stack(chain=("aux", "aux2"))
 
 
 @pytest.mark.parametrize("wrapper", ("continuous", "discrete"))
@@ -176,18 +182,22 @@ class TestMvNormal:
             assert np.allclose(dist_sp.pdf(point), pdf_xr.isel(point=i))
 
 
-@pytest.mark.parametrize("xr_obj", ("DataArray", "Dataset"))
+@pytest.mark.parametrize("xr_obj", ("DataArray", "Dataset", "stacked"))
 class TestStats:
     @pytest.mark.parametrize("dims", ("chain", ("chain", "draw"), None))
     def test_rankdata(self, data, dims, xr_obj):
         if xr_obj == "DataArray":
             xr_in = data["score"]
-        else:
+        elif xr_obj == "Dataset":
             if dims is None:
                 pytest.skip("rankdata doesn't support Dataset input and dims=None")
             xr_in = data[["mu", "sigma"]]
+        else:
+            xr_in = (
+                data["score"].rename(chain="aux").expand_dims(aux2=2).stack(chain=("aux", "aux2"))
+            )
         xr_out = rankdata(xr_in, dims=dims)
-        if xr_obj == "DataArray":
+        if xr_obj in ("DataArray", "stacked"):
             assert isinstance(xr_out, xr.DataArray)
             xr_out = xr_out.to_dataset()
             xr_in = xr_in.to_dataset()
@@ -206,13 +216,17 @@ class TestStats:
     @pytest.mark.parametrize(
         "func", (gmean, hmean, circmean, circstd, circvar, kurtosis, skew, median_abs_deviation)
     )
-    def test_reduce_function(self, data, dims, func, xr_obj):
+    def test_reduce_function(self, data, stacked_data, dims, func, xr_obj):
         if xr_obj == "DataArray":
             xr_in = data["mu"]
-        else:
+        elif xr_obj == "Dataset":
+            if dims is None and func is logsumexp:
+                pytest.skip("logsumexp doesn't support Dataset input and dims=None")
             xr_in = data[["mu", "sigma"]]
+        else:
+            xr_in = stacked_data
         xr_out = func(xr_in, dims=dims)
-        if xr_obj == "DataArray":
+        if xr_obj in ("DataArray", "stacked"):
             assert isinstance(xr_out, xr.DataArray)
             xr_out = xr_out.to_dataset()
             xr_in = xr_in.to_dataset()
@@ -228,8 +242,19 @@ class TestStats:
             assert_dims_not_in_da(out, dims)
 
 
+def test_logsumexp_b(data):
+    b_da = xr.DataArray([1, 2, 1, 1], dims=["chain"], coords={"chain": data.chain})
+    out = logsumexp(data["mu"], dims="draw", b=b_da)
+    out1 = logsumexp(data["mu"].sel(chain=0), dims="draw", b=1)
+    out2 = logsumexp(data["mu"].sel(chain=1), dims="draw", b=2)
+    assert_dims_in_da(out, ("chain", "team"))
+    assert_dims_not_in_da(out, ["draw"])
+    assert_allclose(out.sel(chain=0), out1)
+    assert_allclose(out.sel(chain=1), out2)
+
+
 def test_mad_da_scale(data):
-    s_da = xr.DataArray([1, 2, 1, 1], coords={"chain": data.chain})
+    s_da = xr.DataArray([1, 2, 1, 1], dims=["chain"], coords={"chain": data.chain})
     out = median_abs_deviation(data["mu"], dims="draw", scale=s_da)
     out1 = median_abs_deviation(data["mu"].sel(chain=0), dims="draw", scale=1)
     out2 = median_abs_deviation(data["mu"].sel(chain=1), dims="draw", scale=2)

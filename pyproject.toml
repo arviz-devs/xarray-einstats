@@ -63,6 +63,7 @@ doc = [
     "jupyter-sphinx",
     "sphinx-design",
     "watermark",
+    "matplotlib",
 ]
 
 [tool.black]

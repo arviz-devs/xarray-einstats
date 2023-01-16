@@ -12,6 +12,33 @@ __all__ = ["einsum", "raw_einsum", "einsum_path", "matmul", "zeros_ref", "ones_r
 __version__ = "0.5.0.dev0"
 
 
+def sort(da, dim, **kwargs):
+    """Sort along dimension using DataArray values."""
+    sort_kwargs = dict(axis=-1)
+    if "kind" in kwargs:
+        sort_kwargs["kind"] = kwargs.pop("kind")
+    return xr.apply_ufunc(
+        np.sort,
+        da,
+        input_core_dims=[[dim]],
+        output_core_dims=[[dim]],
+        kwargs=sort_kwargs,
+        **kwargs,
+    )
+
+
+def _remove_indexes_to_reduce(da, dims):
+    index_keys = list(da.indexes)
+    remove_indicator = [
+        (any(da.indexes[k] is index for k in index_keys if k in dims))
+        for name, index in da.indexes.items()
+    ]
+    indexes_to_remove = [k for k, remove in zip(index_keys, remove_indicator) if remove]
+    da = da.drop_indexes(indexes_to_remove)
+    coords_to_remove = [coord for coord in da.coords if coord in indexes_to_remove or coord in dims]
+    return da.reset_coords(coords_to_remove, drop=True)
+
+
 def _find_index(elem, to_search_in):
     for i, da in enumerate(to_search_in):
         if elem in da.dims:

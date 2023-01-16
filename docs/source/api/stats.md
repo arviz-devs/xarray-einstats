@@ -47,6 +47,7 @@ but the output will be a numpy array.
   :toctree: generated/
 
   rankdata
+  logsumexp
 ```
 
 ## Convenience functions

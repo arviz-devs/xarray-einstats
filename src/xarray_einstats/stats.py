@@ -6,8 +6,9 @@ from collections.abc import Sequence
 import numpy as np
 import xarray as xr
 from numpy.linalg import LinAlgError
-from scipy import stats
+from scipy import special, stats
 
+from . import _remove_indexes_to_reduce
 from .linalg import cholesky, eigh
 
 __all__ = [
@@ -409,7 +410,7 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         aux_dim = f"__aux_dim__:{','.join(dims)}"
-        da = da.stack({aux_dim: dims})
+        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims})
         core_dims = [aux_dim]
         unstack = True
     else:
@@ -423,7 +424,7 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
         **kwargs,
     )
     if unstack:
-        return out_da.unstack(aux_dim)
+        return _remove_indexes_to_reduce(out_da.unstack(aux_dim), dims).reindex_like(da)
     return out_da
 
 
@@ -437,7 +438,7 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         aux_dim = f"__aux_dim__:{','.join(dims)}"
-        da = da.stack({aux_dim: dims})
+        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims})
         core_dims = [aux_dim]
     else:
         core_dims = [dims]
@@ -541,6 +542,54 @@ def skew(da, dims=None, *, bias=True, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
 
 
+def logsumexp(da, dims=None, *, b=True, return_sign=False, **kwargs):
+    """Wrap and extend :func:`scipy.special.logsumexp`.
+
+    Usage examples available at :ref:`stats_tutorial`
+    """
+    if dims is None:
+        dims = get_default_dims(da.dims)
+    if not isinstance(dims, str):
+        core_dims = dims
+        axis = tuple(-1 - i for i in reversed(range(len(dims))))
+    else:
+        core_dims = [dims]
+        axis = -1
+
+    if return_sign:
+        out_dims = [[], []]
+    else:
+        out_dims = [[]]
+
+    b_dims = []
+    b_dims_to_keep = []
+    if isinstance(b, xr.DataArray):
+        b_dims_to_keep = [d for d in b.dims if d in da.dims and d not in core_dims]
+        b_dims = [d for d in b.dims if d in core_dims]
+        out_dims[0].extend(b_dims_to_keep)
+
+    try:
+        return xr.apply_ufunc(
+            lambda a, b, **kwargs: special.logsumexp(a, b=b, **kwargs),
+            da,
+            b,
+            input_core_dims=[b_dims_to_keep + core_dims, b_dims_to_keep + b_dims],
+            output_core_dims=out_dims,
+            kwargs=dict(return_sign=return_sign, axis=axis),
+            **kwargs,
+        )
+    except ValueError:
+        out_dims[0] = []
+        return xr.apply_ufunc(
+            lambda a, b, **kwargs: special.logsumexp(a, b=b, **kwargs),
+            *xr.broadcast(da, b),
+            input_core_dims=[core_dims, core_dims],
+            output_core_dims=out_dims,
+            kwargs=dict(return_sign=return_sign, axis=axis),
+            **kwargs,
+        )
+
+
 def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.median_abs_deviation`.
 
@@ -584,7 +633,7 @@ def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         aux_dim = f"__aux_dim__:{','.join(dims)}"
-        da = da.stack({aux_dim: dims})
+        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims})
         core_dims = [aux_dim]
     else:
         core_dims = [dims]
