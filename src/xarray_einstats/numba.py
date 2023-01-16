@@ -218,7 +218,8 @@ def ecdf(da, dims, *, npoints=None, **kwargs):
     --------
     Compute and plot the ecdf over all the data:
 
-    .. jupyter-execute::
+    .. plot::
+       :context: close-figs
 
         from xarray_einstats import tutorial, numba
         import matplotlib.pyplot as plt
@@ -230,7 +231,8 @@ def ecdf(da, dims, *, npoints=None, **kwargs):
     Compute vectorized ecdf values to plot multiple subplots and
     multiple lines in each with different hue:
 
-    .. jupyter-execute::
+    .. plot::
+       :context: close-figs
 
         out = numba.ecdf(ds["mu"], dims="draw")
         out["y"].assign_coords(x=out["x"]).plot.line(
