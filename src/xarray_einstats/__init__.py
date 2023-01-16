@@ -9,7 +9,7 @@ from .linalg import einsum, raw_einsum, einsum_path, matmul
 
 __all__ = ["einsum", "raw_einsum", "einsum_path", "matmul", "zeros_ref", "ones_ref", "empty_ref"]
 
-__version__ = "0.5.0.dev0"
+__version__ = "0.5.0"
 
 
 def sort(da, dim, **kwargs):
