@@ -438,7 +438,7 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
         dims = get_default_dims(da.dims)
     if not isinstance(dims, str):
         aux_dim = f"__aux_dim__:{','.join(dims)}"
-        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims})
+        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims}, create_index=False)
         core_dims = [aux_dim]
     else:
         core_dims = [dims]

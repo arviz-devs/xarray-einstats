@@ -1,8 +1,9 @@
 # pylint: disable=redefined-outer-name, no-self-use
 """Test top level functions."""
 import pytest
+import numpy as np
 
-from xarray_einstats import empty_ref, ones_ref, zeros_ref
+from xarray_einstats import empty_ref, ones_ref, zeros_ref, sort
 from xarray_einstats.tutorial import generate_matrices_dataarray, generate_mcmc_like_dataset
 
 from .utils import assert_dims_in_da, assert_dims_not_in_da
@@ -11,6 +12,16 @@ from .utils import assert_dims_in_da, assert_dims_not_in_da
 @pytest.fixture(scope="module")
 def dataset():
     return generate_mcmc_like_dataset(324)
+
+
+def test_sort(dataset):
+    res = sort(dataset["mu"], dim="team")
+    assert_dims_in_da(res, ["chain", "draw", "team"])
+    team_diff = res.isel(team=slice(1, None)).values - res.isel(team=slice(None, -1)).values
+    assert np.all(team_diff > 0)
+    chain_diff = res.isel(chain=slice(1, None)).values - res.isel(chain=slice(None, -1)).values
+    assert not np.all(chain_diff > 0)
+
 
 
 @pytest.mark.parametrize("fun", (zeros_ref, ones_ref, empty_ref))

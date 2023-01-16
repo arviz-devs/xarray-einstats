@@ -28,6 +28,16 @@ def sort(da, dim, **kwargs):
 
 
 def _remove_indexes_to_reduce(da, dims):
+    """Remove indexes related to provided dims.
+
+    Removes indexes related to dims on which we need to operate.
+    As many functions only support integer `axis` or None,
+    in order to have our functions operate on multiple dimensions
+    we need to stack/flatten them. If some of those dimensions
+    are already indexed by a multiindex this doesn't work, so we
+    remove the indexes. As they are reduced, that information
+    will end up being lost eventually either way.
+    """
     index_keys = list(da.indexes)
     remove_indicator = [
         (any(da.indexes[k] is index for k in index_keys if k in dims))

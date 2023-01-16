@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from xarray_einstats.numba import histogram
+from xarray_einstats.numba import histogram, ecdf
 from xarray_einstats.tutorial import generate_mcmc_like_dataset
 
 from .utils import assert_dims_in_da, assert_dims_not_in_da
@@ -45,3 +45,22 @@ class TestHistogram:
         assert_dims_not_in_da(out, ("chain", "draw"))
         assert_dims_in_da(out, ("team", "bin"))
         assert np.allclose(out.sum("bin"), 1)
+
+class TestECDF:
+    @pytest.mark.parametrize("dims", (None, "team", ["team"], ("chain", "team")))
+    def test_ecdf(self, data, dims):
+        out = ecdf(data["mu"], dims=dims)
+        if dims is None:
+            dims = data["mu"].dims
+        assert_dims_not_in_da(out, dims)
+        assert_dims_in_da(out, ["quantile"]+[d for d in data["mu"].dims if d not in dims])
+        assert np.all(out["y"] <= 1)
+        assert np.all(out["y"] >= 0)
+        assert np.isclose(out["x"].min(), data["mu"].min())
+        assert np.isclose(out["x"].max(), data["mu"].max())
+
+    def test_ecdf_npoints(self, data):
+        out = ecdf(data["mu"], npoints=data["mu"].size)
+        assert_dims_not_in_da(out, ("chain", "draw", "team"))
+        assert_dims_in_da(out, ("quantile",))
+        assert out.sizes["quantile"] == data["mu"].size

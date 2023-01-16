@@ -145,7 +145,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     target="parallel",
     nopython=True,
 )
-def searchsorted_ufunc(da, v, res):
+def searchsorted_ufunc(da, v, res):  # pragma: no cover
     """Use :func:`numba.guvectorize` to convert numpy searchsorted into a vectorized ufunc.
 
     Notes
@@ -170,12 +170,19 @@ def searchsorted(da, v, dims=None, **kwargs):
         will be parallelized over the rest with numba.
     **kwargs : dict, optional
         Keyword arguments passed as-is to :func:`xarray.apply_ufunc`.
+
+    Notes
+    -----
+    It has been designed to be used by :func:`~xarray_einstats.numba.ecdf`,
+    so its setting of input and output core dims makes some assumptions
+    based on that, it doesn't aim to be general use vectorized/parallelized
+    searchsorted.
     """
     if dims is None:
         dims = [d for d in da.dims if d not in v.dims]
     if not isinstance(dims, str):
         aux_dim = f"__aux_dim__:{','.join(dims)}"
-        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims})
+        da = _remove_indexes_to_reduce(da, dims).stack({aux_dim: dims}, create_index=False)
         core_dims = [aux_dim]
     else:
         aux_dim = dims
@@ -193,19 +200,23 @@ def searchsorted(da, v, dims=None, **kwargs):
     )
 
 
-def ecdf(da, dims, *, npoints=None, **kwargs):
+def ecdf(da, dims=None, *, npoints=None, **kwargs):
     """Compute the x and y values of ecdf plots in a vectorized way.
 
     Parameters
     ----------
     da : DataArray
         Input data containing the samples on which we want to compute the ecdf.
-    dims : str or iterable of str
+    dims : str or iterable of str, optional
         Dimensions over which the ecdf should be computed. They are flattened
         and converted to a ``quantile`` dimension that contains the values
         to plot; the other dimensions should be used for facetting and aesthetics.
+        The default is computing the ecdf over the flattened input.
     npoints : int, optional
-    **kwargs : dict
+        Number of points on which to evaluate the ecdf. It defaults
+        to the minimum between 200 and the total number of points in each
+        block defined by `dims`.
+    **kwargs : dict, optional
         Keyword arguments passed as-is to :func:`xarray.apply_ufunc` through
         :func:`~xarray_einstats.numba.searchsorted`.
 
@@ -240,7 +251,9 @@ def ecdf(da, dims, *, npoints=None, **kwargs):
         );
 
     """
-    if isinstance(dims, str):
+    if dims is None:
+        dims = da.dims
+    elif isinstance(dims, str):
         dims = [dims]
     total_points = np.product([da.sizes[d] for d in dims])
     if npoints is None:
