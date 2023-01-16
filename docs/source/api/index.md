@@ -28,6 +28,7 @@ Moreover, it also provides some convenience functions in the top-level namespace
 .. autosummary::
   :toctree: generated/
 
+  sort
   empty_ref
   ones_ref
   zeros_ref

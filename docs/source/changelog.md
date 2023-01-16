@@ -2,15 +2,20 @@
 
 ## v0.x.x (Unreleased)
 ### New features
-* Added `empty_ref`, `ones_ref` and `zeros_ref` DataArray creation helpers {pull}`37`
-* Added `linalg.diagonal` wrapper {pull}`37`
+* Added {func}`.empty_ref`, {func}`.ones_ref` and {func}`.zeros_ref` DataArray creation helpers {pull}`37`
+* Added {func}`.linalg.diagonal` wrapper {pull}`37`
+* Added {func}`.stats.logsumexp` wrapper {pull}`40`
+* Added {func}`.searchsorted` and {func}`.ecdf` in {mod}`~xarray_einstats.numba` module {pull}`40`
+* Added {func}`~xarray_einstats.sort` wrapper for vectorized sort along specific dimension using values {pull}`40`
 
 ### Maintenance and fixes
 * Fix issue in `linalg.svd` for non-square matrices {pull}`37`
 * Fix evaluation of distribution methods (e.g. `.pdf`) on scalars {pull}`38` and {pull}`39`
+* Ensure support on inputs with stacked dimensions {pull}`40`
 
 ### Documentation
 * Ported NumPy tutorial on linear algebra with multidimensional arrays {pull}`37`
+* Added ecdf usage example and plotting reference {pull}`40`
 
 ## v0.4.0 (2022 Dec 9)
 ### New features

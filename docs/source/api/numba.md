@@ -8,4 +8,6 @@
   :toctree: generated/
 
   histogram
+  searchsorted
+  ecdf
 ```
