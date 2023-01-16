@@ -1,6 +1,6 @@
 # Change Log
 
-## v0.x.x (Unreleased)
+## v0.5.0 (2023 Jan 16)
 ### New features
 * Added {func}`.empty_ref`, {func}`.ones_ref` and {func}`.zeros_ref` DataArray creation helpers {pull}`37`
 * Added {func}`.linalg.diagonal` wrapper {pull}`37`
