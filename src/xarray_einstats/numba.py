@@ -250,6 +250,10 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
             x="x", hue="chain", col="team", col_wrap=3, drawstyle="steps-post"
         );
 
+    Warnings
+    --------
+    New and experimental feature, its API might change.
+
     """
     if dims is None:
         dims = da.dims
