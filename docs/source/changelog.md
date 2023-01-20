@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.x.x (Unreleased)
+### New features
+
+### Maintenance and fixes
+
+### Documentation
+
 ## v0.5.1 (2023 Jan 20)
 ### Maintenance and fixes
 * Fix lower cap on xarray version dependency {pull}`45`
