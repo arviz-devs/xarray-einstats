@@ -61,4 +61,6 @@ on an environment that has a specific set of dependencies installed.
 
    ### Documentation
    ```
+1. Check conda-forge. It will automatically send a PR with the updated recipe which
+   will need to be reviewed (and modified if dependencies were updated).
 
