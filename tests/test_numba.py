@@ -54,7 +54,9 @@ class TestECDF:
         if dims is None:
             dims = data["mu"].dims
         assert_dims_not_in_da(out, dims)
-        assert_dims_in_da(out, ["quantile", "ecdf_axis"] + [d for d in data["mu"].dims if d not in dims])
+        assert_dims_in_da(
+            out, ["quantile", "ecdf_axis"] + [d for d in data["mu"].dims if d not in dims]
+        )
         assert np.all(out.sel(ecdf_axis="y") <= 1)
         assert np.all(out.sel(ecdf_axis="y") >= 0)
         assert np.isclose(out.sel(ecdf_axis="x").min(), data["mu"].min())
