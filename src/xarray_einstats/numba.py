@@ -222,8 +222,9 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
 
     Returns
     -------
-    Dataset
-        Dataset with two data variables: ``x`` and ``y`` with the values to plot.
+    DataArray
+        DataArray with the computed values. It reduces the dimensions
+        provided as `dims` and adds the dimensions ``quantile`` and ``ecdf_axis``.
 
     Examples
     --------
@@ -237,7 +238,7 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
 
         ds = tutorial.generate_mcmc_like_dataset(3)
         out = numba.ecdf(ds["mu"], dims=("chain", "draw", "team"))
-        plt.plot(out["x"], out["y"], drawstyle="steps-post");
+        plt.plot(out.sel(ecdf_axis="x"), out.sel(ecdf_axis="y"), drawstyle="steps-post");
 
     Compute vectorized ecdf values to plot multiple subplots and
     multiple lines in each with different hue:
@@ -246,13 +247,21 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
        :context: close-figs
 
         out = numba.ecdf(ds["mu"], dims="draw")
-        out["y"].assign_coords(x=out["x"]).plot.line(
+        out.sel(ecdf_axis="y").assign_coords(x=out.sel(ecdf_axis="x")).plot.line(
             x="x", hue="chain", col="team", col_wrap=3, drawstyle="steps-post"
         );
 
     Warnings
     --------
     New and experimental feature, its API might change.
+
+    Notes
+    -----
+    There are two main reasons for returning a DataArray even if operations
+    do not happen in any vectorized way on the ``ecdf_axis`` dimension.
+    One is that this is more coherent with xarray in aiming to be idempotent.
+    The input is a single DataArray, so the output should be too.
+    The second is that this allows using it with `Dataset.map`.
 
     """
     if dims is None:
@@ -268,4 +277,4 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
     x = (max_da - min_da) * x + min_da
 
     y = searchsorted(da, x, dims=dims, **kwargs) / total_points
-    return xr.Dataset({"x": x, "y": y})
+    return xr.concat((x, y), dim="ecdf_axis").assign_coords(ecdf_axis=["x", "y"])
