@@ -221,7 +221,7 @@ def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs)
     kwargs : dict, optional
         Passed to :func:`xarray.apply_ufunc`
     """
-    op_kwargs = {} if optimize is None else dict(optimize=optimize)
+    op_kwargs = {} if optimize is None else {"optimize": optimize}
 
     subscripts, in_dims, _ = _einsum_parent(dims, *operands, keep_dims=keep_dims)
     updated_in_dims = []
@@ -484,7 +484,7 @@ def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: n
         da,
         input_core_dims=[dims],
         output_core_dims=out_dims,
-        kwargs=dict(mode=mode),
+        kwargs={"mode": mode},
         **kwargs,
     )
 
@@ -521,7 +521,7 @@ def svd(
         da,
         input_core_dims=[dims],
         output_core_dims=out_dims,
-        kwargs=dict(full_matrices=full_matrices, compute_uv=compute_uv, hermitian=hermitian),
+        kwargs={"full_matrices": full_matrices, "compute_uv": compute_uv, "hermitian": hermitian},
         **kwargs,
     )
 
@@ -550,7 +550,7 @@ def eigh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
         da,
         input_core_dims=[dims],
         output_core_dims=[dims[-1:], dims],
-        kwargs=dict(UPLO=UPLO),
+        kwargs={"UPLO": UPLO},
         **kwargs,
     )
 
@@ -579,7 +579,7 @@ def eigvalsh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-n
         da,
         input_core_dims=[dims],
         output_core_dims=[dims[-1:]],
-        kwargs=dict(UPLO=UPLO),
+        kwargs={"UPLO": UPLO},
         **kwargs,
     )
 
@@ -610,7 +610,7 @@ def cond(da, dims=None, *, p=None, **kwargs):  # pylint: disable=invalid-name
     """
     if dims is None:
         dims = _attempt_default_dims("cond", da.dims)
-    return xr.apply_ufunc(np.linalg.cond, da, input_core_dims=[dims], kwargs=dict(p=p), **kwargs)
+    return xr.apply_ufunc(np.linalg.cond, da, input_core_dims=[dims], kwargs={"p": p}, **kwargs)
 
 
 def det(da, dims=None, **kwargs):
@@ -634,7 +634,7 @@ def matrix_rank(da, dims=None, *, tol=None, hermitian=False, **kwargs):
         np.linalg.matrix_rank,
         da,
         input_core_dims=[dims],
-        kwargs=dict(tol=tol, hermitian=hermitian),
+        kwargs={"tol": tol, "hermitian": hermitian},
         **kwargs,
     )
 
@@ -658,7 +658,7 @@ def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
     """
     if dims is None:
         dims = _attempt_default_dims("trace", da.dims)
-    trace_kwargs = dict(offset=offset, dtype=dtype, out=out, axis1=-2, axis2=-1)
+    trace_kwargs = {"offset": offset, "dtype": dtype, "out": out, "axis1": -2, "axis2": -1}
     return xr.apply_ufunc(np.trace, da, input_core_dims=[dims], kwargs=trace_kwargs, **kwargs)
 
 
@@ -669,7 +669,7 @@ def diagonal(da, dims=None, *, offset=0, **kwargs):
     """
     if dims is None:
         dims = _attempt_default_dims("diagonal", da.dims)
-    diagonal_kwargs = dict(offset=offset, axis1=-2, axis2=-1)
+    diagonal_kwargs = {"offset": offset, "axis1": -2, "axis2": -1}
     out_dims = [dims[0] if offset == 0 else "diag_id"]
     return xr.apply_ufunc(
         np.diagonal,
