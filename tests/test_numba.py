@@ -54,14 +54,16 @@ class TestECDF:
         if dims is None:
             dims = data["mu"].dims
         assert_dims_not_in_da(out, dims)
-        assert_dims_in_da(out, ["quantile"] + [d for d in data["mu"].dims if d not in dims])
-        assert np.all(out["y"] <= 1)
-        assert np.all(out["y"] >= 0)
-        assert np.isclose(out["x"].min(), data["mu"].min())
-        assert np.isclose(out["x"].max(), data["mu"].max())
+        assert_dims_in_da(
+            out, ["quantile", "ecdf_axis"] + [d for d in data["mu"].dims if d not in dims]
+        )
+        assert np.all(out.sel(ecdf_axis="y") <= 1)
+        assert np.all(out.sel(ecdf_axis="y") >= 0)
+        assert np.isclose(out.sel(ecdf_axis="x").min(), data["mu"].min())
+        assert np.isclose(out.sel(ecdf_axis="x").max(), data["mu"].max())
 
     def test_ecdf_npoints(self, data):
         out = ecdf(data["mu"], npoints=data["mu"].size)
         assert_dims_not_in_da(out, ("chain", "draw", "team"))
-        assert_dims_in_da(out, ("quantile",))
+        assert_dims_in_da(out, ("quantile", "ecdf_axis"))
         assert out.sizes["quantile"] == data["mu"].size

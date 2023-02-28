@@ -14,7 +14,7 @@ __version__ = "0.6.0.dev0"
 
 def sort(da, dim, **kwargs):
     """Sort along dimension using DataArray values."""
-    sort_kwargs = dict(axis=-1)
+    sort_kwargs = {"axis": -1}
     if "kind" in kwargs:
         sort_kwargs["kind"] = kwargs.pop("kind")
     return xr.apply_ufunc(

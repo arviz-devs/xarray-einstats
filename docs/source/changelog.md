@@ -2,6 +2,7 @@
 
 ## v0.x.x (Unreleased)
 ### New features
+* {func}`.ecdf` now returns a DataArray to be compatible with {meth}`~xarray.Dataset.map` {pull}`47`
 
 ### Maintenance and fixes
 
