@@ -4,6 +4,7 @@
 ### New features
 
 ### Maintenance and fixes
+* Update dependencies and follow new pylint recommendations {pull}`49`
 
 ### Documentation
 
