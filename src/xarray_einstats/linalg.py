@@ -1,4 +1,6 @@
 """Wrappers for :mod:`numpy.linalg`."""
+import warnings
+
 import numpy as np
 import xarray as xr
 
@@ -204,23 +206,29 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
     return subscripts, updated_in_dims, out_dims
 
 
-def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs):
-    """Wrap :func:`numpy.einsum_path`.
+def _translate_pattern_string(subscripts):
+    """Translate a pattern given as string of dimension names to list of dimension names."""
+    if "->" in subscripts:
+        in_subscripts, out_subscript = subscripts.split("->")
+    else:
+        in_subscripts = subscripts
+        out_subscript = None
+    in_dims = [
+        [dim.strip(", ") for dim in in_subscript.split(" ")]
+        for in_subscript in in_subscripts.split(",")
+    ]
+    if out_subscript is None:
+        dims = in_dims
+    elif not out_subscript:
+        dims = [*in_dims, []]
+    else:
+        out_dims = [dim.strip(", ") for dim in out_subscript.split(" ")]
+        dims = [*in_dims, out_dims]
+    return dims
 
-    See :func:`xarray_einstats.einsum` for a detailed description of ``dims``
-    and ``operands``.
 
-    Parameters
-    ----------
-    dims : list of list of str
-    operands : DataArray
-    optimize : str, optional
-        ``optimize`` argument for :func:`numpy.einsum_path`. It defaults to None so that
-        we always default to numpy's default, without needing to keep the call signature
-        here up to date.
-    kwargs : dict, optional
-        Passed to :func:`xarray.apply_ufunc`
-    """
+def _einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs):
+    """Wrap :func:`numpy.einsum_path` directly."""
     op_kwargs = {} if optimize is None else {"optimize": optimize}
 
     subscripts, in_dims, _ = _einsum_parent(dims, *operands, keep_dims=keep_dims)
@@ -239,44 +247,32 @@ def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs)
     ).values.item()
 
 
-def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
-    """Preprocess inputs to call :func:`numpy.einsum` or :func:`numpy.einsum_path`.
+def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs):
+    """Expose :func:`numpy.einsum_path` with an xarray-like API.
 
-    Usage examples of all arguments is available at the
-    :ref:`einsum section <linalg_tutorial/einsum>` of the linear algebra module tutorial.
+    See :func:`xarray_einstats.einsum` for a detailed description of ``dims``
+    and ``operands``.
 
     Parameters
     ----------
     dims : list of list of str
-        List of lists of dimension names. It must have the same length or be
-        only one item longer than ``operands``. If both have the same
-        length, the generated pattern passed to {func}`numpy.einsum`
-        won't have ``->`` nor right hand side. Otherwise, the last
-        item is assumed to be the dimension specification of the output
-        DataArray, and it can be an empty list to add ``->`` but no
-        subscripts.
     operands : DataArray
-        DataArrays for the operation. Multiple DataArrays are accepted.
-    keep_dims : set, optional
-        Dimensions to exclude from summation unless specifically specified in ``dims``
-    out_append : str, optional
-        Pattern to append to repeated dimension names in the output (if any). The pattern should
-        contain a substitution for variable ``i``, which indicates the number of the current
-        dimension among the repeated ones. Its default value is ``"{i}"``.
-        To keep repeated dimension names use ``""``.
-
-        The first occurrence will keep the original name and not use ``out_append``.
-        It will therefore inherit the coordinate values in case there were any.
-    einsum_kwargs : dict, optional
-        Passed to :func:`numpy.einsum`
+    optimize : str, optional
+        ``optimize`` argument for :func:`numpy.einsum_path`. It defaults to None so that
+        we always default to numpy's default, without needing to keep the call signature
+        here up to date.
     kwargs : dict, optional
         Passed to :func:`xarray.apply_ufunc`
+    """
+    if isinstance(dims, str):
+        dims = _translate_pattern_string(dims)
+    return _einsum_path(dims, *operands, keep_dims=keep_dims, optimize=optimize, **kwargs)
 
-    Notes
-    -----
-    Dimensions present in ``dims`` will be reduced, but unlike {func}`xarray.dot` it does so only
-    for that variable.
 
+def _einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
+    """Wrap :func:`numpy.einsum` directly.
+
+    The user facing version is :func:`xarray_einstats.einsum` which exposes two APIs.
     """
     if einsum_kwargs is None:
         einsum_kwargs = {}
@@ -301,47 +297,64 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
     )
 
 
-def raw_einsum(
-    subscripts, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs
-):
-    """Wrap :func:`numpy.einsum` crudely.
+def raw_einsum(*args, **kwargs):
+    """Wrap numpy.einsum.
+
+    DEPRECATED
+    """
+    warnings.warn(
+        "`raw_einsum` has been deprecated. Its functionality has been merged into `einsum`",
+        DeprecationWarning,
+    )
+    return einsum(*args, **kwargs)
+
+
+def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
+    """Expose :func:`numpy.einsum` with an xarray-like API.
 
     Usage examples of all arguments is available at the
     :ref:`einsum section <linalg_tutorial/einsum>` of the linear algebra module tutorial.
 
-    The description of all the arguments except `subscripts` is available at
-    :func:`xarray_einstats.einsum`.
-
     Parameters
     ----------
-    subscripts : str
-        Specify the subscripts for the summation as dimension names. Spaces indicate
-        multiple dimensions in a DataArray and commas indicate multiple DataArray
-        operands. Only dimensions with no spaces, nor commas nor ``->`` characters
-        are valid.
+    dims : str or list of list of str
+        If `dims` is a string it is intepreted as the subscripts for the summation as dimension
+        names. Spaces indicate multiple dimensions in a DataArray and commas indicate
+        multiple DataArray operands.
+        Only dimensions with no spaces, nor commas nor ``->`` characters are valid.
+
+        If `dims` is a list it is interpreted as list of lists of dimension names.
+        It must have the same length or be only one item longer than `operands`.
+        If both have the same length, the generated pattern passed to {func}`numpy.einsum`
+        won't have ``->`` nor right hand side. Otherwise, the last
+        item is assumed to be the dimension specification of the output
+        DataArray. In this case it can be an empty list to add ``->`` but no
+        subscripts.
     operands : DataArray
+        DataArrays for the operation. Multiple DataArrays are accepted.
     keep_dims : set, optional
+        Dimensions to exclude from summation unless specifically specified in ``dims``
     out_append : str, optional
+        Pattern to append to repeated dimension names in the output (if any). The pattern should
+        contain a substitution for variable ``i``, which indicates the number of the current
+        dimension among the repeated ones. Its default value is ``"{i}"``.
+        To keep repeated dimension names use ``""``.
+
+        The first occurrence will keep the original name and not use ``out_append``.
+        It will therefore inherit the coordinate values in case there were any.
     einsum_kwargs : dict, optional
-    kwargs : optional
+        Passed to :func:`numpy.einsum`
+    kwargs : dict, optional
+        Passed to :func:`xarray.apply_ufunc`
+
+    Notes
+    -----
+    Dimensions present in ``dims`` will be reduced, but unlike {func}`xarray.dot` it does so only
+    for that variable.
     """
-    if "->" in subscripts:
-        in_subscripts, out_subscript = subscripts.split("->")
-    else:
-        in_subscripts = subscripts
-        out_subscript = None
-    in_dims = [
-        [dim.strip(", ") for dim in in_subscript.split(" ")]
-        for in_subscript in in_subscripts.split(",")
-    ]
-    if out_subscript is None:
-        dims = in_dims
-    elif not out_subscript:
-        dims = [*in_dims, []]
-    else:
-        out_dims = [dim.strip(", ") for dim in out_subscript.split(" ")]
-        dims = [*in_dims, out_dims]
-    return einsum(
+    if isinstance(dims, str):
+        dims = _translate_pattern_string(dims)
+    return _einsum(
         dims,
         *operands,
         keep_dims=keep_dims,

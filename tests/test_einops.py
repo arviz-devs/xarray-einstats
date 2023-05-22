@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xarray_einstats.einops import raw_rearrange, raw_reduce, rearrange, reduce, translate_pattern
+from xarray_einstats.einops import rearrange, reduce, translate_pattern
 
 einops = pytest.importorskip("einops")  # pylint: disable=invalid-name
 
@@ -50,7 +50,7 @@ class TestRawRearrange:
     )
     def test_raw_rearrange(self, data, args):
         pattern, kwargs, (shape, dims) = args
-        out_da = raw_rearrange(data, pattern, **kwargs)
+        out_da = rearrange(data, pattern, **kwargs)
         assert out_da.shape == shape
         assert list(out_da.dims) == dims
 
@@ -60,13 +60,13 @@ class TestRearrange:
         "args",
         (
             (
-                {"out_dims": [{"dex": ("drug dose (mg)", "experiment")}]},
+                {"pattern": [{"dex": ("drug dose (mg)", "experiment")}]},
                 ((4, 6, 8 * 15), ["batch", "subject", "dex"]),
             ),
             (
                 {
-                    "in_dims": [{"drug dose (mg)": ("d1", "d2")}],
-                    "out_dims": ["d1", "d2", "batch"],
+                    "pattern_in": [{"drug dose (mg)": ("d1", "d2")}],
+                    "pattern": ["d1", "d2", "batch"],
                     "d1": 2,
                     "d2": 4,
                 },
@@ -95,7 +95,7 @@ class TestRawReduce:
     )
     def test_raw_reduce(self, data, args):
         pattern, kwargs, (shape, dims) = args
-        out_da = raw_reduce(data, pattern, "mean", **kwargs)
+        out_da = reduce(data, pattern, "mean", **kwargs)
         assert out_da.shape == shape
         assert list(out_da.dims) == dims
 
@@ -105,21 +105,21 @@ class TestReduce:
         "args",
         (
             (
-                {"out_dims": ["batch (hh.mm)", "subject"]},
+                {"pattern": ["batch (hh.mm)", "subject"]},
                 ((4, 6), ["batch (hh.mm)", "subject"]),
             ),
             (
                 {
-                    "in_dims": [{"batch (hh.mm)": ("d1", "d2")}],
-                    "out_dims": ["d1", "subject"],
+                    "pattern_in": [{"batch (hh.mm)": ("d1", "d2")}],
+                    "pattern": ["d1", "subject"],
                     "d2": 2,
                 },
                 ((2, 6), ["d1", "subject"]),
             ),
             (
                 {
-                    "in_dims": [{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
-                    "out_dims": ["subject", ("b1", "d1")],
+                    "pattern_in": [{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
+                    "pattern": ["subject", ("b1", "d1")],
                     "d2": 4,
                     "b2": 2,
                 },

@@ -23,18 +23,11 @@ of the elements respectively: `->`, space as delimiter and parenthesis:
   dimension order in xarray doesn't matter and there isn't much to be done without knowing
   the dimension names.
 
-:::{attention}
-We also provide some cruder wrappers with syntax closer to einops.
-We are experimenting on trying to find the right spot between being clear,
-semantic and flexible yet concise.
-
-These `raw_` wrappers like {func}`xarray_einstats.einops.raw_rearrange`
-impose several extra constraints to accepted xarray inputs, in addition
-to dimension names being strings.
-
-The example data we are using on this page uses single word alphabetical
-dimensions names which allows us to demonstrate both side by side.
-:::
+However, there are also many cases in which dimension names in xarray will be strings
+without any spaces nor parenthesis in them. So similarly to the option of
+doing `da.stack(dim=("dim1", "dim2"))` which can't be used for all valid
+dimension names but is generally easier to write and less error prone,
+`xarray_einstats.einops` also provides two possible syntaxes.
 
 The guiding principle of the einops module is to take the input expressions
 in our list of str/list/dict and translate them to valid einops expressions
@@ -45,14 +38,17 @@ and thus support "partial" expressions that cover only the dimensions
 that will be modified.
 
 Another important consideration is to take into account that _in xarray_,
-dimension names should not matter, hence the constraint of using dicts
+dimension order should not matter, hence the constraint of using dicts
 on the left side. Imposing this constraint also
 makes our job of filling in the "partial" expressions much easier.
 We do accept that in the right side as we can generate sensible
 default names.
 
-As for the `raw_` wrappers, in order to avoid rewriting the partial
-expression filling logic, their behaviour is very simplified:
+As for the alternative API, its syntax is much closer to that in einops,
+as it is string base, but it does add some extra constraints to the dimension names
+that are compatible with it.
+
+To avoid rewriting the partial expression filling logic, their behaviour is very simplified:
 1. Split the expression in two if possible using `->`
 2. Convert each side to list of str/list/dict following the rules of the complete wrappers
 3. Call the complete wrapper
@@ -60,5 +56,18 @@ expression filling logic, their behaviour is very simplified:
 This has an extra and a bit hidden advantage. einops supports
 _explicit_ ellipsis but we don't, to us an ellipsis is not writing
 the dimension name in the expression. Therefore, `.` are valid
-in our `raw_` expressions, we convert those to "full xarray" expressions
+in our string expressions, we convert those to "full xarray" expressions
 which support everything and we don't need extra logic to handle dots either.
+
+## Examples
+
+Given a {class}`~xarray.DataArray` `da` with dimensions `a`, `b`, `c` and `d`,
+the table below shows the result of equivalent expressions
+and the dimensions (and order) present in their output:
+
+| list syntax | string syntax | output |
+|---|---|---|
+| `rearrange(da, ["c", "d", "a", "b"])` | rearrange(da, "c d a b")` | `c`, `d`, `a`, `b` |
+| `rearrange(da, [{"e": ["c", "d"]}, {"f": ["a", "b"]}])` | rearrange(da, "(c d)=e (a b)=f")` | `e`, `f` |
+| `rearrange(da, ["a2", "c", "a1", {"e": ["d", "b"]}], pattern_in=[{"a": ["a1", "a2"]}])` | rearrange(da, "(a1 a2)=a -> a1 c a2 (d b)=e")` | `c`, `d`, `a`, `b` |
+

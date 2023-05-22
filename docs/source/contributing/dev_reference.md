@@ -58,7 +58,10 @@ Runs test suite with pytest
   :toctree: generated/
 
   PairHandler
+  _translate_pattern_string
   _einsum_parent
+  _einsum_path
+  _einsum
 ```
 
 ### Einops
@@ -70,6 +73,8 @@ Runs test suite with pytest
   DimHandler
   process_pattern_list
   translate_pattern
+  _reduce
+  _rearrange
 ```
 
 ### Tutorial

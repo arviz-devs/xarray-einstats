@@ -6,10 +6,12 @@ To use it you need to have installed einops manually or alternatively
 install this library as ``xarray-einstats[einops]`` or ``xarray-einstats[all]``.
 Details about the exact command are available at :ref:`installation`
 """
+import warnings
+
 import einops
 import xarray as xr
 
-__all__ = ["rearrange", "raw_rearrange", "reduce", "raw_reduce", "DaskBackend"]
+__all__ = ["rearrange", "reduce", "DaskBackend"]
 
 
 class DimHandler:
@@ -117,13 +119,12 @@ def translate_pattern(pattern):
     Parameters
     ----------
     pattern : str
-        Input pattern as a string. The ``raw_`` wrappers use these patterns.
+        Input pattern as a string.
 
     Returns
     -------
     pattern_list
-        Pattern translated to list, as used by the full fledged wrappers
-        instead of the ``raw_`` ones.
+        Pattern translated to list, as used by the direct feature-full wrappers.
 
     Examples
     --------
@@ -174,37 +175,26 @@ def translate_pattern(pattern):
     return dims
 
 
-def rearrange(da, out_dims, in_dims=None, **kwargs):
+def _rearrange(da, out_dims, in_dims=None, **kwargs):
     """Wrap `einops.rearrange <https://einops.rocks/api/rearrange/>`_.
+
+    This is the function that actually interfaces with ``einops``.
+    :func:`xarray_einstats.einops.rearrange` is the user facing
+    version as it exposes two possible APIs, one of them significantly
+    less verbose and more friendly (but much less flexible).
 
     Parameters
     ----------
     da : xarray.DataArray
         Input DataArray to be rearranged
     out_dims : list of str, list or dict
-        The output pattern for the dimensions.
-        The dimensions present in
+        See docstring of :func:`~xarray_einstats.einops.rearrange`
     in_dims : list of str or dict, optional
-        The input pattern for the dimensions.
-        This is only necessary if you want to split some dimensions.
+        See docstring of :func:`~xarray_einstats.einops.rearrange`
     kwargs : dict, optional
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
         the rest of keys are passed to :func:`xarray.apply_ufunc`
-
-    Notes
-    -----
-    Unlike for general xarray objects, where dimension
-    names can be :term:`hashable <xarray:name>` here
-    dimension names are not recommended but required to be
-    strings.
-
-    See Also
-    --------
-    xarray_einstats.einops.raw_rearrange:
-        Cruder wrapper of einops.rearrange, allowed characters in dimension names are restricted
-    xarray.DataArray.transpose, xarray.Dataset.transpose
-    xarray.DataArray.stack, xarray.Dataset.stack
     """
     da_dims = da.dims
 
@@ -248,8 +238,10 @@ def rearrange(da, out_dims, in_dims=None, **kwargs):
     )
 
 
-def raw_rearrange(da, pattern, **kwargs):
-    """Crudely wrap `einops.rearrange <https://einops.rocks/api/rearrange/>`_.
+def rearrange(da, pattern, pattern_in=None, **kwargs):
+    """Expose `einops.rearrange <https://einops.rocks/api/rearrange/>`_ with an xarray-like API.
+
+    It has two possible syntaxes which are independent and somewhat complementary.
 
     Wrapper around einops.rearrange with a very similar syntax.
     Spaces, parenthesis ``()`` and `->` are not allowed in dimension names.
@@ -258,16 +250,31 @@ def raw_rearrange(da, pattern, **kwargs):
     ----------
     da : xarray.DataArray
         Input array
-    pattern : string
-        Pattern string. Same syntax as patterns in einops with two
-        caveats:
+    pattern : str or list of [hashable, list or dict]
+        If `pattern` is a string, it uses the same syntax as einops
+        with two caveats:
 
         * Unless splitting or stacking, you must use the actual dimension names.
-        * When splitting or stacking you can use `(dim1 dim2)=dim`. This is `necessary`
+        * When splitting or stacking you can use ``(dim1 dim2)=dim``. This is *necessary*
           for the left hand side as it identifies the dimension to split, and
           optional on the right hand side, if omitted the stacked dimension will be given
           a default name.
 
+        If `pattern` is not a string, then it must be a list where each of its elements
+        is one of: ``str``, ``list`` (to stack those dimensions and give them an
+        arbitrary name) or ``dict of {str: list}`` (to stack the dimensions indicated
+        as values of the dictionary and name the resulting dimensions with the key).
+
+        `pattern` is then interpreted as the output side of the einops pattern. See
+        TODO for more details.
+    pattern_in : list of [str or dict], optional
+        The input pattern for the dimensions. It can only be provided if `pattern`
+        is a ``list``. Also, note this is only necessary if you want to split some dimensions.
+
+        The syntax and interpretation is the same as the case when `pattern` is a list,
+        with the only difference that ``list`` elements are not allowed, the same way
+        that ``(dim1 dim2)=dim`` is required on the left hand side when using string
+        patterns.
     kwargs : dict, optional
         Passed to :func:`xarray_einstats.einops.rearrange`
 
@@ -275,23 +282,40 @@ def raw_rearrange(da, pattern, **kwargs):
     -------
     xarray.DataArray
 
+    Notes
+    -----
+    Unlike for general xarray objects, where dimension
+    names can be :term:`hashable <xarray:name>` here
+    dimension names are not recommended but required to be
+    strings for both cases. Future releases however might
+    support this when using lists as `pattern`, comment
+    on :issue:`50` if you are interested in the feature
+    or could help implement it.
+
+
     See Also
     --------
-    xarray_einstats.einops.rearrange:
-        More flexible and powerful wrapper over einops.rearrange. It is also more verbose.
+    xarray_einstats.einops.reduce
     """
-    if "->" in pattern:
-        in_pattern, out_pattern = pattern.split("->")
-        in_dims = translate_pattern(in_pattern)
-    else:
-        out_pattern = pattern
-        in_dims = None
-    out_dims = translate_pattern(out_pattern)
-    return rearrange(da, out_dims=out_dims, in_dims=in_dims, **kwargs)
+    if isinstance(pattern, str):
+        if "->" in pattern:
+            in_pattern, out_pattern = pattern.split("->")
+            in_dims = translate_pattern(in_pattern)
+        else:
+            out_pattern = pattern
+            in_dims = None
+        out_dims = translate_pattern(out_pattern)
+        return _rearrange(da, out_dims=out_dims, in_dims=in_dims, **kwargs)
+    return _rearrange(da, out_dims=pattern, in_dims=pattern_in, **kwargs)
 
 
-def reduce(da, reduction, out_dims, in_dims=None, **kwargs):
+def _reduce(da, reduction, out_dims, in_dims=None, **kwargs):
     """Wrap `einops.reduce <https://einops.rocks/api/reduce/>`_.
+
+    This is the function that actually interfaces with ``einops``.
+    :func:`xarray_einstats.einops.rearrange` is the user facing
+    version as it exposes two possible APIs, one of them significantly
+    less verbose and more friendly (but much less flexible).
 
     Parameters
     ----------
@@ -311,19 +335,6 @@ def reduce(da, reduction, out_dims, in_dims=None, **kwargs):
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
         the rest of keys are passed to :func:`xarray.apply_ufunc`
-
-    Notes
-    -----
-    Unlike for general xarray objects, where dimension
-    names can be :term:`hashable <xarray:name>` here
-    dimension names are not recommended but required to be
-    strings.
-
-    See Also
-    --------
-    xarray_einstats.einops.raw_reduce:
-        Cruder wrapper of einops.rearrange, allowed characters in dimension names are restricted
-    xarray_einstats.einops.rearrange, xarray_einstats.einops.raw_rearrange
     """
     da_dims = da.dims
 
@@ -357,30 +368,43 @@ def reduce(da, reduction, out_dims, in_dims=None, **kwargs):
     )
 
 
-def raw_reduce(da, pattern, reduction, **kwargs):
-    """Crudely wrap `einops.reduce <https://einops.rocks/api/reduce/>`_.
+def reduce(da, pattern, reduction, pattern_in=None, **kwargs):
+    """Expose `einops.reduce <https://einops.rocks/api/reduce/>`_ with an xarray-like API.
 
-    Wrapper around einops.reduce with a very similar syntax.
-    Spaces, parenthesis ``()`` and `->` are not allowed in dimension names.
+    It has two possible syntaxes which are independent and somewhat complementary.
 
     Parameters
     ----------
     da : xarray.DataArray
         Input array
-    pattern : string
-        Pattern string. Same syntax as patterns in einops with two
-        caveats:
+    pattern : str or list of [str, list or dict]
+        If `pattern` is a string, it uses the same syntax as einops
+        with two caveats:
 
         * Unless splitting or stacking, you must use the actual dimension names.
-        * When splitting or stacking you can use `(dim1 dim2)=dim`. This is `necessary`
+        * When splitting or stacking you can use ``(dim1 dim2)=dim``. This is *necessary*
           for the left hand side as it identifies the dimension to split, and
           optional on the right hand side, if omitted the stacked dimension will be given
           a default name.
 
+        If `pattern` is not a string, then it must be a list where each of its elements
+        is one of: ``str``, ``list`` (to stack those dimensions and give them an
+        arbitrary name) or ``dict of {str: list}`` (to stack the dimensions indicated
+        as values of the dictionary and name the resulting dimensions with the key).
+
+        `pattern` is then interpreted as the output side of the einops pattern. See
+        TODO for more details.
     reduction : string or callable
         One of available reductions ('min', 'max', 'sum', 'mean', 'prod') by ``einops.reduce``,
         case-sensitive. Alternatively, a callable ``f(tensor, reduced_axes) -> tensor``
         can be provided. ``reduced_axes`` are passed as a list of int.
+    pattern_in : list of [str or dict], optional
+        The input pattern for the dimensions. It can only be provided if `pattern`
+        is a ``list``. Also, note this is only necessary if you want to split some dimensions.
+
+        The syntax and interpretation is the same as the case when `pattern` is a list,
+        with the only difference that ``list`` elements are not allowed, the same way
+        that ``(dim1 dim2)=dim`` is required on the left hand side when using string
     kwargs : dict, optional
         Passed to :func:`xarray_einstats.einops.reduce`
 
@@ -388,20 +412,54 @@ def raw_reduce(da, pattern, reduction, **kwargs):
     -------
     xarray.DataArray
 
+    Notes
+    -----
+    Unlike for general xarray objects, where dimension
+    names can be :term:`hashable <xarray:name>` here
+    dimension names are not recommended but required to be
+    strings for both cases. Future releases however might
+    support this when using lists as `pattern`, comment
+    on :issue:`50` if you are interested in the feature
+    or could help implement it.
+
     See Also
     --------
-    xarray_einstats.einops.reduce:
-        More flexible and powerful wrapper over einops.reduce. It is also more verbose.
-    xarray_einstats.einops.rename_kwarg, xarray_einstats.einops.raw_rearrange
+    xarray_einstats.einops.rearrange
     """
-    if "->" in pattern:
-        in_pattern, out_pattern = pattern.split("->")
-        in_dims = translate_pattern(in_pattern)
-    else:
-        out_pattern = pattern
-        in_dims = None
-    out_dims = translate_pattern(out_pattern)
-    return reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, **kwargs)
+    if isinstance(pattern, str):
+        if "->" in pattern:
+            in_pattern, out_pattern = pattern.split("->")
+            in_dims = translate_pattern(in_pattern)
+        else:
+            out_pattern = pattern
+            in_dims = None
+        out_dims = translate_pattern(out_pattern)
+        return _reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, **kwargs)
+    return _reduce(da, reduction, out_dims=pattern, in_dims=pattern_in, **kwargs)
+
+
+def raw_reduce(*args, **kwargs):
+    """Wrap einops.reduce.
+
+    DEPRECATED
+    """
+    warnings.warn(
+        "raw_reduce has been deprecated. Its functionality has been merged into reduce",
+        DeprecationWarning,
+    )
+    return reduce(*args, **kwargs)
+
+
+def raw_rearrange(*args, **kwargs):
+    """Wrap einops.rearrange.
+
+    DEPRECATED
+    """
+    warnings.warn(
+        "raw_rearrange has been deprecated. Its functionality has been merged into rearrange",
+        DeprecationWarning,
+    )
+    return rearrange(*args, **kwargs)
 
 
 class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protected-access
