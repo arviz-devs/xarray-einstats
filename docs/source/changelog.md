@@ -5,6 +5,7 @@
 * {func}`.ecdf` now returns a DataArray to be compatible with {meth}`~xarray.Dataset.map` {pull}`47`
 
 ### Maintenance and fixes
+* Update dependencies and follow new pylint recommendations {pull}`49`
 
 ### Documentation
 
