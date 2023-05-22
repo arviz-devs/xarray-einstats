@@ -6,8 +6,18 @@ import numpy as np
 import xarray as xr
 
 from .linalg import einsum, einsum_path, matmul
+from .accessors import LinAlgAccessor, EinopsAccessor
 
-__all__ = ["einsum", "einsum_path", "matmul", "zeros_ref", "ones_ref", "empty_ref"]
+__all__ = [
+    "einsum",
+    "einsum_path",
+    "matmul",
+    "zeros_ref",
+    "ones_ref",
+    "empty_ref",
+    "LinAlgAccessor",
+    "EinopsAccessor",
+]
 
 __version__ = "0.6.0.dev0"
 
