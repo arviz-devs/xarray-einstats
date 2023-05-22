@@ -66,8 +66,7 @@ disable=missing-docstring,
         not-an-iterable,
         no-member,
         import-error,
-        fixme,
-        use-dict-literal
+        fixme
 
 
 

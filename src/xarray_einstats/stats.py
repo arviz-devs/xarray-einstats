@@ -291,8 +291,8 @@ def _add_documented_method(cls, wrapped_cls, methods, extra_docs=None):
         setattr(cls, method_name, method)
 
 
-doc_extras = dict(
-    rvs="""
+doc_extras = {
+    "rvs": """
 Parameters
 ----------
 args : scalar or array_like, optional
@@ -316,7 +316,7 @@ apply_kwargs : dict, optional
 kwargs : dict, optional
     Passed to the scipy distribution after broadcasting using the same key.
 """
-)
+}
 base_methods = ["cdf", "logcdf", "sf", "logsf", "ppf", "isf", "rvs"]
 _add_documented_method(XrRV, "rv_generic", base_methods, doc_extras)
 _add_documented_method(
@@ -492,7 +492,7 @@ def circmean(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs)
 
     Usage examples available at :ref:`stats_tutorial`
     """
-    circmean_kwargs = dict(axis=-1, high=high, low=low)
+    circmean_kwargs = {"axis": -1, "high": high, "low": low}
     if nan_policy is not None:
         circmean_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circmean, da, dims, kwargs, circmean_kwargs)
@@ -503,7 +503,7 @@ def circvar(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
 
     Usage examples available at :ref:`stats_tutorial`
     """
-    circvar_kwargs = dict(axis=-1, high=high, low=low)
+    circvar_kwargs = {"axis": -1, "high": high, "low": low}
     if nan_policy is not None:
         circvar_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circvar, da, dims, kwargs, circvar_kwargs)
@@ -514,7 +514,7 @@ def circstd(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
 
     Usage examples available at :ref:`stats_tutorial`
     """
-    circstd_kwargs = dict(axis=-1, high=high, low=low)
+    circstd_kwargs = {"axis": -1, "high": high, "low": low}
     if nan_policy is not None:
         circstd_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.circstd, da, dims, kwargs, circstd_kwargs)
@@ -525,7 +525,7 @@ def kurtosis(da, dims=None, *, fisher=True, bias=True, nan_policy=None, **kwargs
 
     Usage examples available at :ref:`stats_tutorial`
     """
-    kurtosis_kwargs = dict(axis=-1, fisher=fisher, bias=bias)
+    kurtosis_kwargs = {"axis": -1, "fisher": fisher, "bias": bias}
     if nan_policy is not None:
         kurtosis_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.kurtosis, da, dims, kwargs, kurtosis_kwargs)
@@ -536,7 +536,7 @@ def skew(da, dims=None, *, bias=True, nan_policy=None, **kwargs):
 
     Usage examples available at :ref:`stats_tutorial`
     """
-    skew_kwargs = dict(axis=-1, bias=bias)
+    skew_kwargs = {"axis": -1, "bias": bias}
     if nan_policy is not None:
         skew_kwargs["nan_policy"] = nan_policy
     return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
@@ -575,7 +575,7 @@ def logsumexp(da, dims=None, *, b=True, return_sign=False, **kwargs):
             b,
             input_core_dims=[b_dims_to_keep + core_dims, b_dims_to_keep + b_dims],
             output_core_dims=out_dims,
-            kwargs=dict(return_sign=return_sign, axis=axis),
+            kwargs={"return_sign": return_sign, "axis": axis},
             **kwargs,
         )
     except ValueError:
@@ -585,7 +585,7 @@ def logsumexp(da, dims=None, *, b=True, return_sign=False, **kwargs):
             *xr.broadcast(da, b),
             input_core_dims=[core_dims, core_dims],
             output_core_dims=out_dims,
-            kwargs=dict(return_sign=return_sign, axis=axis),
+            kwargs={"return_sign": return_sign, "axis": axis},
             **kwargs,
         )
 
@@ -623,7 +623,7 @@ def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None
         stats.median_abs_deviation(ds["mu"], axis=1, scale=s_da)
 
     """
-    mad_kwargs = dict(axis=-1)
+    mad_kwargs = {"axis": -1}
     if center is not None:
         mad_kwargs["center"] = center
     if nan_policy is not None:

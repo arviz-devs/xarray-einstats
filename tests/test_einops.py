@@ -43,7 +43,7 @@ class TestRawRearrange:
             ("(batch subject)=dim", {}, ((15, 8, 4 * 6), ["experiment", "drug", "dim"])),
             (
                 "(e1 e2)=experiment -> e1 e2",
-                dict(e1=3, e2=5),
+                {"e1": 3, "e2": 5},
                 ((4, 6, 8, 3, 5), ["batch", "subject", "drug", "e1", "e2"]),
             ),
         ),
@@ -60,16 +60,16 @@ class TestRearrange:
         "args",
         (
             (
-                dict(out_dims=[{"dex": ("drug dose (mg)", "experiment")}]),
+                {"out_dims": [{"dex": ("drug dose (mg)", "experiment")}]},
                 ((4, 6, 8 * 15), ["batch", "subject", "dex"]),
             ),
             (
-                dict(
-                    in_dims=[{"drug dose (mg)": ("d1", "d2")}],
-                    out_dims=["d1", "d2", "batch"],
-                    d1=2,
-                    d2=4,
-                ),
+                {
+                    "in_dims": [{"drug dose (mg)": ("d1", "d2")}],
+                    "out_dims": ["d1", "d2", "batch"],
+                    "d1": 2,
+                    "d2": 4,
+                },
                 ((6, 15, 2, 4, 4), ["subject", "experiment", "d1", "d2", "batch"]),
             ),
         ),
@@ -88,7 +88,7 @@ class TestRawReduce:
             ("batch subject", {}, ((4, 6), ["batch", "subject"])),
             (
                 "(h1 h2)=experiment (w1 w2)=subject -> batch h1 w1",
-                dict(h2=3, w2=2),
+                {"h2": 3, "w2": 2},
                 ((4, 5, 3), ["batch", "h1", "w1"]),
             ),
         ),
@@ -105,24 +105,24 @@ class TestReduce:
         "args",
         (
             (
-                dict(out_dims=["batch (hh.mm)", "subject"]),
+                {"out_dims": ["batch (hh.mm)", "subject"]},
                 ((4, 6), ["batch (hh.mm)", "subject"]),
             ),
             (
-                dict(
-                    in_dims=[{"batch (hh.mm)": ("d1", "d2")}],
-                    out_dims=["d1", "subject"],
-                    d2=2,
-                ),
+                {
+                    "in_dims": [{"batch (hh.mm)": ("d1", "d2")}],
+                    "out_dims": ["d1", "subject"],
+                    "d2": 2,
+                },
                 ((2, 6), ["d1", "subject"]),
             ),
             (
-                dict(
-                    in_dims=[{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
-                    out_dims=["subject", ("b1", "d1")],
-                    d2=4,
-                    b2=2,
-                ),
+                {
+                    "in_dims": [{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
+                    "out_dims": ["subject", ("b1", "d1")],
+                    "d2": 4,
+                    "b2": 2,
+                },
                 ((6, 2 * 2), ["subject", "b1-d1"]),
             ),
         ),
