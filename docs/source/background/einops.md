@@ -65,9 +65,33 @@ Given a {class}`~xarray.DataArray` `da` with dimensions `a`, `b`, `c` and `d`,
 the table below shows the result of equivalent expressions
 and the dimensions (and order) present in their output:
 
-| list syntax | string syntax | output |
-|---|---|---|
-| `rearrange(da, ["c", "d", "a", "b"])` | rearrange(da, "c d a b")` | `c`, `d`, `a`, `b` |
-| `rearrange(da, [{"e": ["c", "d"]}, {"f": ["a", "b"]}])` | rearrange(da, "(c d)=e (a b)=f")` | `e`, `f` |
-| `rearrange(da, ["a2", "c", "a1", {"e": ["d", "b"]}], pattern_in=[{"a": ["a1", "a2"]}])` | rearrange(da, "(a1 a2)=a -> a1 c a2 (d b)=e")` | `c`, `d`, `a`, `b` |
+```python
+# list syntax
+rearrange(da, ["c", "d", "a", "b"])
+# string syntax
+rearrange(da, "c d a b")
+# dims in output: `c`, `d`, `a`, `b`
 
+# ----------------------------
+
+# list syntax
+rearrange(
+    da,
+    [{"e": ["c", "d"]}, {"f": ["a", "b"]}]
+)
+# string syntax
+rearrange(da, "(c d)=e (a b)=f")
+# dims in output: `e`, `f`
+
+# ----------------------------
+
+# list syntax
+rearrange(
+    da,
+    ["a2", "c", "a1", {"e": ["d", "b"]}],
+    pattern_in=[{"a": ["a1", "a2"]}]
+)
+# string syntax
+rearrange(da, "(a1 a2)=a -> a1 c a2 (d b)=e")
+# dims in output: `a1`, `c`, `a2`, `e`
+```
