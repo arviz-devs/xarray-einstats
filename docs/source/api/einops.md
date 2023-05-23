@@ -12,6 +12,12 @@
   reduce
 ```
 
+:::{tip}
+The functions above are also available via the `.einops` accessor
+from :class:`DataArray` objects. See {ref}`einops_tutorial` for
+example usage.
+:::
+
 ```{eval-rst}
 .. autosummary::
   :toctree: generated/

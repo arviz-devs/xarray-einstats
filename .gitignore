@@ -7,7 +7,9 @@
 # website: http://jupyter.org/
 
 .ipynb_checkpoints
+.virtual_documents
 */.ipynb_checkpoints/*
+*/.virtual_documents/*
 pati.ipynb
 
 # IPython

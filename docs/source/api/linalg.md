@@ -4,6 +4,15 @@
 .. automodule:: xarray_einstats.linalg
 ```
 
+:::{tip}
+Most of the functions in this module are also available via the `.linalg` accessor
+from :class:`DataArray` objects. See {ref}`linalg_tutorial` for
+example usage.
+
+The functions that are not available via the accessor are `einsum`, `einsum_path`,
+`matmul` and `get_default_dims`.
+:::
+
 ## Matrix and vector products
 ```{eval-rst}
 .. currentmodule:: xarray_einstats
