@@ -63,6 +63,7 @@ doc = [
     "sphinx-design",
     "watermark",
     "matplotlib",
+    "sphinx-togglebutton",
 ]
 
 [tool.black]
