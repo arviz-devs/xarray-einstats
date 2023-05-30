@@ -11,7 +11,6 @@
   :toctree: generated/
 
   einsum
-  raw_einsum
   einsum_path
   matmul
   linalg.matrix_transpose

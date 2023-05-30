@@ -3,11 +3,14 @@
 ## v0.x.x (Unreleased)
 ### New features
 * {func}`.ecdf` now returns a DataArray to be compatible with {meth}`~xarray.Dataset.map` {pull}`47`
+* Added `.linalg` and `.einops` accessors for `DataArray` objects {pull}`51`
 
 ### Maintenance and fixes
 * Update dependencies and follow new pylint recommendations {pull}`49`
 
 ### Documentation
+* Add documentation showing how to use accessors {pull}`51`
+* Ease running einops tutorial locally {pull}`51`
 
 ## v0.5.1 (2023 Jan 20)
 ### Maintenance and fixes

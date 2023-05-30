@@ -2,6 +2,14 @@
 import numpy as np
 import xarray as xr
 
+try:
+    from IPython import get_ipython
+    from PIL.Image import fromarray
+
+    array_display = True  # pylint: disable=invalid-name
+except ModuleNotFoundError:
+    array_display = False  # pylint: disable=invalid-name
+
 
 def generate_mcmc_like_dataset(seed=None):
     """Generate a Dataset with multiple variables, some with dimensions from mcmc sampling.
@@ -70,3 +78,29 @@ def generate_matrices_dataarray(seed=None):
     return xr.DataArray(
         rng.exponential(size=(10, 3, 4, 4)), dims=["batch", "experiment", "dim", "dim2"]
     )
+
+
+if array_display:
+
+    def display_np_arrays_as_images():
+        """Display numpy arrays as images by default in IPython and Jupyter.
+
+        Only needs to be imported for the behaviour to be configured.
+        """
+        # pylint: disable=protected-access
+
+        def np_to_png(a):
+            if 2 <= len(a.shape) <= 3:
+                return fromarray(np.array(np.clip(a, 0, 1) * 255, dtype="uint8"))._repr_png_()
+            return fromarray(np.zeros([1, 1], dtype="uint8"))._repr_png_()
+
+        def np_to_text(obj, p, cycle):  # pylint: disable=unused-argument, invalid-name
+            if len(obj.shape) < 2:
+                print(repr(obj))
+            if 2 <= len(obj.shape) <= 3:
+                pass
+            else:
+                print(f"<array of shape {obj.shape}>")
+
+        get_ipython().display_formatter.formatters["image/png"].for_type(np.ndarray, np_to_png)
+        get_ipython().display_formatter.formatters["text/plain"].for_type(np.ndarray, np_to_text)

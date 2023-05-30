@@ -41,6 +41,7 @@ extensions = [
     "jupyter_sphinx",
     "sphinx_design",
     "matplotlib.sphinxext.plot_directive",
+    "sphinx_togglebutton",
 ]
 
 templates_path = ["_templates"]

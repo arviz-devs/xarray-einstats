@@ -63,6 +63,7 @@ doc = [
     "sphinx-design",
     "watermark",
     "matplotlib",
+    "sphinx-togglebutton",
 ]
 
 [tool.black]
@@ -88,6 +89,7 @@ testpaths = [
 
 [tool.coverage.run]
 source = ["xarray_einstats"]
+omit = ["tutorial.py"]
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration

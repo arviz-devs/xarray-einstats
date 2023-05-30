@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 from xarray.testing import assert_allclose, assert_equal
 
-from xarray_einstats import einsum, einsum_path, linalg, matmul, raw_einsum, tutorial
+from xarray_einstats import einsum, einsum_path, linalg, matmul, tutorial
 from xarray_einstats.linalg import (
     cholesky,
     cond,
@@ -82,20 +82,20 @@ class TestEinsumFamily:
     # there are some specific ones for various reasons,
     # mostly to test features supported only in einsum
     def test_raw_einsum_implicit(self, matrices):
-        out = raw_einsum("batch,experiment", matrices, matrices)
+        out = einsum("batch,experiment", matrices, matrices)
         da = matrices.sum("experiment") * matrices.sum("batch")
         assert list(out.dims) == ["dim", "dim2", "experiment", "batch"]
         assert_allclose(out, da.transpose(*out.dims))
 
     def test_raw_einsum_explicit(self, matrices):
-        out = raw_einsum("batch,experiment->", matrices, matrices)
+        out = einsum("batch,experiment->", matrices, matrices)
         da = (matrices.sum("experiment") * matrices.sum("batch")).sum(("batch", "experiment"))
         assert_dims_not_in_da(out, ["batch", "experiment"])
         assert_dims_in_da(out, ["dim", "dim2"])
         assert_allclose(out, da.transpose(*out.dims))
 
     def test_raw_einsum_transpose(self, matrices):
-        out = raw_einsum("batch experiment->experiment batch", matrices)
+        out = einsum("batch experiment->experiment batch", matrices)
         assert out.ndim == matrices.ndim
         assert out.dims[-1] == "batch"
         assert out.dims[-2] == "experiment"
