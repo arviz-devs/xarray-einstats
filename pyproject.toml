@@ -89,6 +89,7 @@ testpaths = [
 
 [tool.coverage.run]
 source = ["xarray_einstats"]
+omit = ["tutorial.py"]
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration

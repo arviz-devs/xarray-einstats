@@ -5,6 +5,13 @@ imported when doing ``import xarray_einstats``.
 To use it you need to have installed einops manually or alternatively
 install this library as ``xarray-einstats[einops]`` or ``xarray-einstats[all]``.
 Details about the exact command are available at :ref:`installation`
+
+.. tip::
+
+    The functions above are also available via the ``.einops`` accessor
+    from :class:`DataArray` objects. See :ref:`einops_tutorial` for
+    example usage.
+
 """
 import warnings
 
