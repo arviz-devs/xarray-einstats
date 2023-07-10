@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.x.x (Unreleased)
+### New features
+
+### Maintenance and fixes
+
+### Documentation
+
 ## v0.6.0 (2023 Jul 11)
 ### New features
 * {func}`.ecdf` now returns a DataArray to be compatible with {meth}`~xarray.Dataset.map` {pull}`47`
