@@ -1,6 +1,6 @@
 # Change Log
 
-## v0.x.x (Unreleased)
+## v0.6.0 (2023 Jul 11)
 ### New features
 * {func}`.ecdf` now returns a DataArray to be compatible with {meth}`~xarray.Dataset.map` {pull}`47`
 * Added `.linalg` and `.einops` accessors for `DataArray` objects {pull}`51`

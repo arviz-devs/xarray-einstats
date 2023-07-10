@@ -57,7 +57,7 @@ and around [einops](https://einops.rocks/) with an api and features adapted to x
 :gutter: 3
 
 ::::{grid-item-card}
-Label aware
+{material-outlined}`bookmarks;1.1em` Label aware
 ^^^
 
 Apply operations over named dimensions.
@@ -65,7 +65,7 @@ Automatically aligns and broadcasts inputs,
 and preserves dimensions and coordinates.
 ::::
 ::::{grid-item-card}
-Interoperability
+{material-outlined}`hub;1.1em` Interoperability
 ^^^
 
 Wrappers in xarray-einstats are designed to be minimal
@@ -73,13 +73,13 @@ to preserve as many features from xarray as possible,
 for example, Dask support.
 ::::
 ::::{grid-item-card}
-Batched operations
+{material-outlined}`backup_table;1.1em` Batched operations
 ^^^
 
 All operations can be batched over one or multiple dimensions.
 ::::
 ::::{grid-item-card}
-Flexible inputs
+{material-outlined}`mediation;1.1em` Flexible inputs
 ^^^
 
 DataArrays, Datasets and even GroupBy xarray objects can
