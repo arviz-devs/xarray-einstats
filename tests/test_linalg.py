@@ -246,7 +246,7 @@ class TestWrappers:
         u_da, s_da, vh_da = svd(matrices, dims=("dim", "dim2"), out_append="_bis")
         s_full = xr.zeros_like(matrices)
         idx = xr.DataArray(np.arange(len(matrices["dim"])), dims="pointwise_sel")
-        s_full.loc[{"dim": idx, "dim2": idx}] = s_da
+        s_full.loc[{"dim": idx, "dim2": idx}] = s_da.rename(dim="pointwise_sel")
         compare = matmul(
             matmul(u_da, s_full, dims=[["dim", "dim_bis"], ["dim", "dim2"]]),
             vh_da,
@@ -259,7 +259,7 @@ class TestWrappers:
         s_full = xr.zeros_like(matrices)
         # experiment is shorter than dim
         idx = xr.DataArray(np.arange(len(matrices["experiment"])), dims="pointwise_sel")
-        s_full.loc[{"experiment": idx, "dim": idx}] = s_da.transpose("batch", "experiment", "dim2")
+        s_full.loc[{"experiment": idx, "dim": idx}] = s_da.rename(experiment="pointwise_sel")
         compare = matmul(
             matmul(u_da, s_full, dims=[["experiment", "experiment_bis"], ["experiment", "dim"]]),
             vh_da,
