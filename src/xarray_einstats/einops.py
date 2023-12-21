@@ -14,6 +14,7 @@ Details about the exact command are available at :ref:`installation`
 
 """
 import warnings
+from collections.abc import Hashable
 
 import einops
 import xarray as xr
@@ -61,7 +62,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
     allow_dict, allow_list : bool, optional
         Whether or not to allow lists or dicts as elements of ``redims``.
         When processing ``in_dims`` for example we need the names of
-        the variables to be decomposed so dicts are required and lists/tuples
+        the variables to be decomposed so dicts are required and lists
         are not accepted.
 
     Returns
@@ -85,14 +86,14 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
 
         from xarray_einstats.einops import process_pattern_list, DimHandler
         handler = DimHandler()
-        process_pattern_list(["a", {"b": ("c", "d")}, ("e", "f", "g")], handler)
+        process_pattern_list(["a", {"b": ["c", "d"]}, ["e", "f", "g"]], handler)
 
     """
     out = []
     out_names = []
     txt = []
     for subitem in redims:
-        if isinstance(subitem, str):
+        if isinstance(subitem, Hashable):
             out.append(subitem)
             out_names.append(subitem)
             txt.append(handler.get_name(subitem))
@@ -103,8 +104,10 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
                     f"found {len(subitem)}: {subitem.keys()}"
                 )
             key, values = list(subitem.items())[0]
-            if isinstance(values, str):
-                raise ValueError("Found values of type str in a pattern dict, use xarray.rename")
+            if isinstance(values, Hashable):
+                raise ValueError(
+                    "Found values of hashable type in a pattern dict, use xarray.rename"
+                )
             out.extend(values)
             out_names.append(key)
             txt.append(f"( {handler.get_names(values)} )")
@@ -182,7 +185,7 @@ def translate_pattern(pattern):
     return dims
 
 
-def _rearrange(da, out_dims, in_dims=None, **kwargs):
+def _rearrange(da, out_dims, in_dims=None, dim_lengths=None):
     """Wrap `einops.rearrange <https://einops.rocks/api/rearrange/>`_.
 
     This is the function that actually interfaces with ``einops``.
@@ -198,11 +201,14 @@ def _rearrange(da, out_dims, in_dims=None, **kwargs):
         See docstring of :func:`~xarray_einstats.einops.rearrange`
     in_dims : list of str or dict, optional
         See docstring of :func:`~xarray_einstats.einops.rearrange`
-    kwargs : dict, optional
+    dim_lengths : dict, optional
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
         the rest of keys are passed to :func:`xarray.apply_ufunc`
     """
+    if dim_lengths is None:
+        dim_lengths = {}
+
     da_dims = da.dims
 
     handler = DimHandler()
@@ -231,9 +237,9 @@ def _rearrange(da, out_dims, in_dims=None, **kwargs):
         {non_core_pattern} {handler.get_names(missing_out_dims)} {out_pattern}"
 
     axes_lengths = {
-        handler.rename_kwarg(k): v for k, v in kwargs.items() if k in out_names + out_dims
+        handler.rename_kwarg(k): v for k, v in dim_lengths.items() if k in out_names + out_dims
     }
-    kwargs = {k: v for k, v in kwargs.items() if k not in out_names + out_dims}
+    kwargs = {k: v for k, v in dim_lengths.items() if k not in out_names + out_dims}
     return xr.apply_ufunc(
         einops.rearrange,
         da,
@@ -245,7 +251,7 @@ def _rearrange(da, out_dims, in_dims=None, **kwargs):
     )
 
 
-def rearrange(da, pattern, pattern_in=None, **kwargs):
+def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwargs):
     """Expose `einops.rearrange <https://einops.rocks/api/rearrange/>`_ with an xarray-like API.
 
     It has two possible syntaxes which are independent and somewhat complementary.
@@ -268,12 +274,12 @@ def rearrange(da, pattern, pattern_in=None, **kwargs):
           a default name.
 
         If `pattern` is not a string, then it must be a list where each of its elements
-        is one of: ``str``, ``list`` (to stack those dimensions and give them an
-        arbitrary name) or ``dict of {str: list}`` (to stack the dimensions indicated
+        is one of: :term:`python:hashable`, ``list`` (to stack those dimensions and
+        give them an arbitrary name) or ``dict`` (to stack the dimensions indicated
         as values of the dictionary and name the resulting dimensions with the key).
 
-        `pattern` is then interpreted as the output side of the einops pattern. See
-        TODO for more details.
+        `pattern` is then interpreted as the output side of the einops pattern.
+        See :ref:`about_einops` for more details.
     pattern_in : list of [str or dict], optional
         The input pattern for the dimensions. It can only be provided if `pattern`
         is a ``list``. Also, note this is only necessary if you want to split some dimensions.
@@ -282,28 +288,22 @@ def rearrange(da, pattern, pattern_in=None, **kwargs):
         with the only difference that ``list`` elements are not allowed, the same way
         that ``(dim1 dim2)=dim`` is required on the left hand side when using string
         patterns.
-    kwargs : dict, optional
-        Passed to :func:`xarray_einstats.einops.rearrange`
+    dim_lengths, **dim_lengths_kwargs : dict, optional
+        If the keys are dimensions present in `pattern` they will be passed to
+        `einops.rearrange <https://einops.rocks/api/rearrange/>`_, otherwise,
+        they are passed to :func:`xarray.apply_ufunc`.
 
     Returns
     -------
     xarray.DataArray
 
-    Notes
-    -----
-    Unlike for general xarray objects, where dimension
-    names can be :term:`hashable <xarray:name>` here
-    dimension names are not recommended but required to be
-    strings for both cases. Future releases however might
-    support this when using lists as `pattern`, comment
-    on :issue:`50` if you are interested in the feature
-    or could help implement it.
-
-
     See Also
     --------
     xarray_einstats.einops.reduce
     """
+    if dim_lengths is None:
+        dim_lengths = {}
+    dim_lengths = {**dim_lengths, **dim_lengths_kwargs}
     if isinstance(pattern, str):
         if "->" in pattern:
             in_pattern, out_pattern = pattern.split("->")
@@ -312,11 +312,11 @@ def rearrange(da, pattern, pattern_in=None, **kwargs):
             out_pattern = pattern
             in_dims = None
         out_dims = translate_pattern(out_pattern)
-        return _rearrange(da, out_dims=out_dims, in_dims=in_dims, **kwargs)
-    return _rearrange(da, out_dims=pattern, in_dims=pattern_in, **kwargs)
+        return _rearrange(da, out_dims=out_dims, in_dims=in_dims, dim_lengths=dim_lengths)
+    return _rearrange(da, out_dims=pattern, in_dims=pattern_in, dim_lengths=dim_lengths)
 
 
-def _reduce(da, reduction, out_dims, in_dims=None, **kwargs):
+def _reduce(da, reduction, out_dims, in_dims=None, dim_lengths=None):
     """Wrap `einops.reduce <https://einops.rocks/api/reduce/>`_.
 
     This is the function that actually interfaces with ``einops``.
@@ -338,11 +338,14 @@ def _reduce(da, reduction, out_dims, in_dims=None, **kwargs):
     in_dims : list of str or dict, optional
         The input pattern for the dimensions.
         This is only necessary if you want to split some dimensions.
-    kwargs : dict, optional
+    dim_lengths : dict, optional
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
         the rest of keys are passed to :func:`xarray.apply_ufunc`
     """
+    if dim_lengths is None:
+        dim_lengths = {}
+
     da_dims = da.dims
 
     handler = DimHandler()
@@ -361,8 +364,8 @@ def _reduce(da, reduction, out_dims, in_dims=None, **kwargs):
     pattern = f"{handler.get_names(missing_in_dims)} {in_pattern} -> {out_pattern}"
 
     all_dims = set(out_dims + out_names + in_names + in_dims)
-    axes_lengths = {handler.rename_kwarg(k): v for k, v in kwargs.items() if k in all_dims}
-    kwargs = {k: v for k, v in kwargs.items() if k not in all_dims}
+    axes_lengths = {handler.rename_kwarg(k): v for k, v in dim_lengths.items() if k in all_dims}
+    kwargs = {k: v for k, v in dim_lengths.items() if k not in all_dims}
     return xr.apply_ufunc(
         einops.reduce,
         da,
@@ -375,7 +378,7 @@ def _reduce(da, reduction, out_dims, in_dims=None, **kwargs):
     )
 
 
-def reduce(da, pattern, reduction, pattern_in=None, **kwargs):
+def reduce(da, pattern, reduction, pattern_in=None, dim_lengths=None, **dim_lengths_kwargs):
     """Expose `einops.reduce <https://einops.rocks/api/reduce/>`_ with an xarray-like API.
 
     It has two possible syntaxes which are independent and somewhat complementary.
@@ -412,27 +415,22 @@ def reduce(da, pattern, reduction, pattern_in=None, **kwargs):
         The syntax and interpretation is the same as the case when `pattern` is a list,
         with the only difference that ``list`` elements are not allowed, the same way
         that ``(dim1 dim2)=dim`` is required on the left hand side when using string
-    kwargs : dict, optional
-        Passed to :func:`xarray_einstats.einops.reduce`
+    dim_lengths, **dim_lengths_kwargs : dict, optional
+        If the keys are dimensions present in `pattern` they will be passed to
+        `einops.reduce <https://einops.rocks/api/reduce/>`_, otherwise,
+        they are passed to :func:`xarray.apply_ufunc`.
 
     Returns
     -------
     xarray.DataArray
 
-    Notes
-    -----
-    Unlike for general xarray objects, where dimension
-    names can be :term:`hashable <xarray:name>` here
-    dimension names are not recommended but required to be
-    strings for both cases. Future releases however might
-    support this when using lists as `pattern`, comment
-    on :issue:`50` if you are interested in the feature
-    or could help implement it.
-
     See Also
     --------
     xarray_einstats.einops.rearrange
     """
+    if dim_lengths is None:
+        dim_lengths = {}
+    dim_lengths = {**dim_lengths, **dim_lengths_kwargs}
     if isinstance(pattern, str):
         if "->" in pattern:
             in_pattern, out_pattern = pattern.split("->")
@@ -441,8 +439,8 @@ def reduce(da, pattern, reduction, pattern_in=None, **kwargs):
             out_pattern = pattern
             in_dims = None
         out_dims = translate_pattern(out_pattern)
-        return _reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, **kwargs)
-    return _reduce(da, reduction, out_dims=pattern, in_dims=pattern_in, **kwargs)
+        return _reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, dim_lengths=dim_lengths)
+    return _reduce(da, reduction, out_dims=pattern, in_dims=pattern_in, dim_lengths=dim_lengths)
 
 
 def raw_reduce(*args, **kwargs):

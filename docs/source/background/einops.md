@@ -13,8 +13,7 @@ of the elements respectively: `->`, space as delimiter and parenthesis:
   side in the einops notation is only used to label the dimensions.
   In fact, 5/7 examples in https://einops.rocks/api/rearrange/ fall in this category.
   This is not necessary when working with xarray objects.
-* In xarray dimension names can be any {term}`hashable <xarray:name>`. `xarray-einstats` only
-  supports strings as dimension names, but the space can't be used as delimiter.
+* In xarray dimension names can be any {term}`hashable <xarray:name>`.
 * In xarray dimensions are labeled and the order doesn't matter.
   This might seem the same as the first reason but it is not. When splitting
   or stacking dimensions you need (and want) the names of both parent and children dimensions.
@@ -25,8 +24,8 @@ of the elements respectively: `->`, space as delimiter and parenthesis:
 
 However, there are also many cases in which dimension names in xarray will be strings
 without any spaces nor parenthesis in them. So similarly to the option of
-doing `da.stack(dim=("dim1", "dim2"))` which can't be used for all valid
-dimension names but is generally easier to write and less error prone,
+doing `da.stack(dim=["dim1", "dim2"])` which can't be used for all valid
+dimension names but is generally easier to write and less error prone than,
 `xarray_einstats.einops` also provides two possible syntaxes.
 
 The guiding principle of the einops module is to take the input expressions
@@ -37,7 +36,7 @@ labeled, we can take advantage of that during the translation process
 and thus support "partial" expressions that cover only the dimensions
 that will be modified.
 
-Another important consideration is to take into account that _in xarray_,
+Another important consideration is to take into account that _in xarray_
 dimension order should not matter, hence the constraint of using dicts
 on the left side. Imposing this constraint also
 makes our job of filling in the "partial" expressions much easier.

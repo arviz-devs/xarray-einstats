@@ -60,12 +60,12 @@ class TestRearrange:
         "args",
         (
             (
-                {"pattern": [{"dex": ("drug dose (mg)", "experiment")}]},
+                {"pattern": [{"dex": ["drug dose (mg)", "experiment"]}]},
                 ((4, 6, 8 * 15), ["batch", "subject", "dex"]),
             ),
             (
                 {
-                    "pattern_in": [{"drug dose (mg)": ("d1", "d2")}],
+                    "pattern_in": [{"drug dose (mg)": ["d1", "d2"]}],
                     "pattern": ["d1", "d2", "batch"],
                     "d1": 2,
                     "d2": 4,
@@ -79,6 +79,16 @@ class TestRearrange:
         out_da = rearrange(data.rename({"drug": "drug dose (mg)"}), **kwargs)
         assert out_da.shape == shape
         assert list(out_da.dims) == dims
+
+    def test_rearrange_tuple_dim(self, data):
+        out_da = rearrange(
+            data.rename(drug=("drug dose", "mg")),
+            pattern_in=[{("drug dose", "mg"): [("d", 1), ("d", 2)]}],
+            pattern=[("d", 1), ("d", 2), "batch"],
+            dim_lengths={("d", 1): 2, ("d", 2): 4},
+        )
+        assert out_da.shape == (6, 15, 2, 4, 4)
+        assert list(out_da.dims) == ["subject", "experiment", ("d", 1), ("d", 2), "batch"]
 
 
 class TestRawReduce:
@@ -110,7 +120,7 @@ class TestReduce:
             ),
             (
                 {
-                    "pattern_in": [{"batch (hh.mm)": ("d1", "d2")}],
+                    "pattern_in": [{"batch (hh.mm)": ["d1", "d2"]}],
                     "pattern": ["d1", "subject"],
                     "d2": 2,
                 },
@@ -118,8 +128,8 @@ class TestReduce:
             ),
             (
                 {
-                    "pattern_in": [{"drug": ("d1", "d2")}, {"batch (hh.mm)": ("b1", "b2")}],
-                    "pattern": ["subject", ("b1", "d1")],
+                    "pattern_in": [{"drug": ["d1", "d2"]}, {"batch (hh.mm)": ["b1", "b2"]}],
+                    "pattern": ["subject", ["b1", "d1"]],
                     "d2": 4,
                     "b2": 2,
                 },
@@ -132,3 +142,14 @@ class TestReduce:
         out_da = reduce(data.rename({"batch": "batch (hh.mm)"}), reduction="mean", **kwargs)
         assert out_da.shape == shape
         assert list(out_da.dims) == dims
+
+    def test_reduce_tuple_dim(self, data):
+        out_da = reduce(
+            data.rename(drug=("drug dose", "mg")),
+            reduction="mean",
+            pattern_in=[{("drug dose", "mg"): [("d", 1), ("d", 2)]}],
+            pattern=["subject", ("d", 2), "batch"],
+            dim_lengths={("d", 1): 2, ("d", 2): 4},
+        )
+        assert out_da.shape == (6, 4, 4)
+        assert list(out_da.dims) == ["subject", ("d", 2), "batch"]

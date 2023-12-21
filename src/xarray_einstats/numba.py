@@ -268,7 +268,7 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
         dims = da.dims
     elif isinstance(dims, str):
         dims = [dims]
-    total_points = np.product([da.sizes[d] for d in dims])
+    total_points = np.prod([da.sizes[d] for d in dims])
     if npoints is None:
         npoints = min(total_points, 200)
     x = xr.DataArray(np.linspace(0, 1, npoints), dims=["quantile"])

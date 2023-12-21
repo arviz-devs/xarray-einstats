@@ -88,7 +88,7 @@ def test_einops_accessor_rearrange(data):
 
 @pytest.mark.skipif(find_spec("einops") is None, reason="einops must be installed")
 def test_einops_accessor_reduce(data):
-    pattern_in = [{"batch (hh.mm)": ("d1", "d2")}]
+    pattern_in = [{"batch (hh.mm)": ["d1", "d2"]}]
     pattern = ["d1", "subject"]
     kwargs = {"d2": 2}
     input_data = data.rename({"batch": "batch (hh.mm)"})
