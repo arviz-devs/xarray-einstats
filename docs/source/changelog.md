@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.x.x (Unreleased)
+### New features
+
+### Maintenance and fixes
+
+### Documentation
+
 ## v0.7.0 (2024 Jan 17)
 ### New features
 * Add support for hashable dimension names {pull}`56`
