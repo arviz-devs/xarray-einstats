@@ -23,11 +23,12 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dynamic = ["version"]
 dependencies = [
-  "numpy>=1.21",
-  "scipy>=1.7",
+  "numpy>=1.22",
+  "scipy>=1.8",
   "xarray>=2022.09.0",
 ]
 
@@ -58,7 +59,7 @@ doc = [
     "myst-nb",
     "sphinx-copybutton",
     "numpydoc",
-    "sphinx>=4",
+    "sphinx>=5",
     "jupyter-sphinx",
     "sphinx-design",
     "watermark",

@@ -1,11 +1,12 @@
 # Change Log
 
-## v0.x.x (Unreleased)
+## v0.7.0 (2024 Jan 17)
 ### New features
+* Add support for hashable dimension names {pull}`56`
 
 ### Maintenance and fixes
-
-### Documentation
+* Fix tests to be compatible with latest xarray {pull}`56`
+* Address numpy deprecation warnings {pull}`56`
 
 ## v0.6.0 (2023 Jul 11)
 ### New features
