@@ -710,19 +710,75 @@ def solve(da, db, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.solve`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    db : DataArray
+    dims : sequence of hashable, optional
+        It can have either length 2 or 3. If length 2, both dimensions should have the
+        same length and be present in `da`, and only one of them should also be present in `db`.
+        If length 3, the first two elements behave the same; the third element is a dimension
+        of arbitrary length which can only present in `db`.
+
+        From NumPy's docstring, a has ``(..., M, M)`` shape and b has ``(M,) or (..., M, K)``.
+        Here, b can be ``(..., M)`` this case is not limited to 1d, so dims with length two
+        indicates the two dimensions of length M, with length 3 it is something like (M, M, K),
+        which can be done thanks to named dimensions.
+    **kwargs : mapping
+        Passed to :func:`xarray.apply_ufunc`
+
+    Examples
+    --------
+    Dimension naming conventions are designed to ease inverse operation with :func:`xarray.dot`.
+
+    The following example illustrates what this means and how to check that solve
+    worked correctly
+
+    .. jupyter-execute::
+
+        import xarray as xr
+        import numpy as np
+        from xarray_einstats.linalg import solve
+        from xarray_einstats.tutorial import generate_matrices_dataarray
+
+        matrices = generate_matrices_dataarray()
+        matrices
+
+    .. jupyter-execute::
+
+        b = matrices.std("dim2")  # dims (batch, experiment, dim)
+        y2 = solve(matrices, b, dims=("dim", "dim2"))  # dims (batch, experiment, dim2)
+        np.allclose(b, xr.dot(matrices, y2, dims="dim2"))
+
     """
     if dims is None:
         dims = _attempt_default_dims("solve", da.dims, db.dims)
     if len(dims) == 3:
-        b_dim = dims[0] if dims[0] in db.dims else dims[1]
-        in_dims = [dims[:2], [b_dim, dims[-1]]]
-        out_dims = [[b_dim, dims[-1]]]
+        # solve(a, b) in numpy has signature a: (..., M, M) and b: (..., M, K)
+        # we look which dim is in b -> represents the M
+        k_dim = dims[-1]  # the last element in dims represents the K
+        remove_k = False
+        if k_dim in da:
+            raise ValueError(
+                f"Found {k_dim} in `da`. If provided, the 3rd element of 'dims' "
+                "can only be in `db`."
+            )
     else:
-        in_dims = [dims, dims[:1]]
-        out_dims = [dims[:1]]
-    return xr.apply_ufunc(
+        # a: (..., M, M) and b: (..., M) is not supported, so we add a dummy K
+        k_dim = "__k_aux_dim__"
+        remove_k = True
+        db = db.expand_dims(k_dim)
+    b_dim = dims[0] if dims[0] in db.dims else dims[1]
+    y_dim = dims[1] if dims[0] in db.dims else dims[0]
+    in_dims = [dims[:2], [b_dim, k_dim]]
+    out_dims = [[y_dim, k_dim]]
+    da_out = xr.apply_ufunc(
         np.linalg.solve, da, db, input_core_dims=in_dims, output_core_dims=out_dims, **kwargs
     )
+    if remove_k:
+        return da_out.squeeze(k_dim, drop=True)
+    return da_out
 
 
 def inv(da, dims=None, **kwargs):
