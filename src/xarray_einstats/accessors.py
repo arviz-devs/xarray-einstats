@@ -1,4 +1,5 @@
 """Accessors for xarray_einstats features."""
+
 import xarray as xr
 
 from .linalg import (

@@ -13,6 +13,7 @@ Details about the exact command are available at :ref:`installation`
     example usage.
 
 """
+
 import warnings
 from collections.abc import Hashable
 

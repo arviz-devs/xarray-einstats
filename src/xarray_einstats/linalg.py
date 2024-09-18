@@ -10,6 +10,7 @@
     ``matmul`` and ``get_default_dims``.
 
 """
+
 import warnings
 
 import numpy as np
@@ -792,6 +793,7 @@ def inv(da, dims=None, **kwargs):
         np.linalg.inv, da, input_core_dims=[dims], output_core_dims=[dims], **kwargs
     )
 
+
 def pinv(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.pinv`.
 
@@ -803,5 +805,10 @@ def pinv(da, dims=None, **kwargs):
     rcond = kwargs.pop("rtol", None)
     rcond = kwargs.pop("rcond", rcond)
     return xr.apply_ufunc(
-        np.linalg.pinv, da, rcond, input_core_dims=[dims, []], output_core_dims=[dims[::-1]], **kwargs
+        np.linalg.pinv,
+        da,
+        rcond,
+        input_core_dims=[dims, []],
+        output_core_dims=[dims[::-1]],
+        **kwargs,
     )
