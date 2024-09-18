@@ -34,6 +34,7 @@ __all__ = [
     "diagonal",
     "solve",
     "inv",
+    "pinv",
 ]
 
 
@@ -733,4 +734,18 @@ def inv(da, dims=None, **kwargs):
         dims = _attempt_default_dims("inv", da.dims)
     return xr.apply_ufunc(
         np.linalg.inv, da, input_core_dims=[dims], output_core_dims=[dims], **kwargs
+    )
+
+def pinv(da, dims=None, **kwargs):
+    """Wrap :func:`numpy.linalg.pinv`.
+
+    Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+    If both "rtol" and "rcond" are provided, "rtol" will be ignored.
+    """
+    if dims is None:
+        dims = _attempt_default_dims("pinv", da.dims)
+    rcond = kwargs.pop("rtol", None)
+    rcond = kwargs.pop("rcond", rcond)
+    return xr.apply_ufunc(
+        np.linalg.pinv, da, rcond, input_core_dims=[dims, []], output_core_dims=[dims[::-1]], **kwargs
     )

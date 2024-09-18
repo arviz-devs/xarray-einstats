@@ -21,6 +21,7 @@ from xarray_einstats.linalg import (
     matrix_rank,
     matrix_transpose,
     norm,
+    pinv,
     qr,
     slogdet,
     solve,
@@ -139,6 +140,12 @@ class TestWrappers:
         out = inv(matrices, dims=("dim", "dim2"))
         assert out.shape == matrices.shape
         assert out.dims == matrices.dims
+
+    def test_pinv(self, matrices):
+        out = pinv(matrices, dims=("experiment", "dim"))
+        out_dims_exp = ("batch", "dim2", "dim", "experiment")
+        assert out.dims == out_dims_exp
+        assert out.shape == tuple(out.sizes[dim] for dim in out_dims_exp)
 
     def test_transpose(self, hermitian):
         assert_equal(hermitian, matrix_transpose(hermitian, dims=("dim", "dim2")))
