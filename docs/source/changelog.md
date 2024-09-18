@@ -1,13 +1,11 @@
 # Change Log
 
-## v0.x.x (Unreleased)
+## v0.8.0 (2024 Sep 19)
 ### New features
 * Add `numpy.linalg.pinv` wrapper {pull}`63`
 
 ### Maintenance and fixes
 * Update to handle modified behaviour of `numpy.linalg.solve` {pull}`63`
-
-### Documentation
 
 ## v0.7.0 (2024 Jan 17)
 ### New features
