@@ -1,4 +1,5 @@
 """Tutorial module with data for docs and quick testing."""
+
 import numpy as np
 import xarray as xr
 

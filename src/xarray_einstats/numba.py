@@ -1,4 +1,5 @@
 """Module with numba enhanced functions."""
+
 import numba
 import numpy as np
 import xarray as xr
