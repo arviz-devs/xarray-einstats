@@ -1,4 +1,4 @@
-# pylint: disable=redefined-outer-name, no-self-use
+# pylint: disable=redefined-outer-name, no-self-use, too-many-positional-arguments
 """Test the stats module."""
 import numpy as np
 import pytest
