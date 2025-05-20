@@ -104,14 +104,15 @@ def _asdataarray(x_or_q, dim_name):
 
 
 def _wrap_method(method):
+    # pylint: disable=protected-access
     def aux(self, *args, apply_kwargs=None, **kwargs):
         dim_name = "quantile" if method in {"ppf", "isf"} else "point"
         if apply_kwargs is None:
             apply_kwargs = {}
-        meth = getattr(self.dist, method)
         if args:
             args = (_asdataarray(args[0], dim_name), *args[1:])
-        args, kwargs = self._broadcast_args(args, kwargs)  # pylint: disable=protected-access
+        dist_args, dist_kwargs, args, kwargs = self._broadcast_args(args, kwargs)
+        meth = getattr(self.dist(*dist_args, **dist_kwargs), method)
         return xr.apply_ufunc(meth, *args, kwargs=kwargs, **apply_kwargs)
 
     return aux
@@ -162,25 +163,43 @@ class XrRV:
             )
         ]
         all_keys = list(kwargs.keys()) + list(self.kwargs.keys())
-        args = all_args[:len_args]
-        kwargs = dict(zip(all_keys, all_args[len_args:]))
-        return args, kwargs
+        args = all_args[: len(args)]
+        dist_args = all_args[len(args) : len_args]
+        kwargs = dict(zip(all_keys[: len(kwargs)], all_args[len_args : len_args + len(kwargs)]))
+        dist_kwargs = dict(zip(all_keys[len(kwargs) :], all_args[len_args + len(kwargs) :]))
+        return dist_args, dist_kwargs, args, kwargs
 
-    def rvs(self, *args, size=1, random_state=None, dims=None, apply_kwargs=None, **kwargs):
+    def rvs(
+        self,
+        *args,
+        size=None,
+        random_state=None,
+        dims=None,
+        coords=None,
+        apply_kwargs=None,
+        **kwargs,
+    ):
         """Implement base rvs method.
 
         In scipy, rvs has a common signature that doesn't depend on continuous
         or discrete, so we can define it here.
         """
-        args, kwargs = self._broadcast_args(args, kwargs)
+        dist_args, dist_kwargs, args, kwargs = self._broadcast_args(args, kwargs)
         size_in = tuple()
         dims_in = tuple()
-        for a in (*args, *kwargs.values()):
+        for a in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
             if isinstance(a, xr.DataArray):
                 size_in = a.shape
                 dims_in = a.dims
                 break
 
+        if size is None and dims is None and coords is not None:
+            size = [len(vals) for vals in coords.values()]
+            dims = list(coords.keys())
+        if size is None:
+            size = 1
+        if coords is None:
+            coords = {}
         if isinstance(dims, str):
             dims = [dims]
 
@@ -207,14 +226,26 @@ class XrRV:
         if apply_kwargs is None:
             apply_kwargs = {}
 
-        return xr.apply_ufunc(
-            self.dist.rvs,
+        output_core_dims = [*dims, *dims_in]
+        out = xr.apply_ufunc(
+            self.dist(*dist_args, **dist_kwargs).rvs,
             *args,
             kwargs={**kwargs, "size": size, "random_state": random_state},
             input_core_dims=[dims_in for _ in args],
-            output_core_dims=[[*dims, *dims_in]],
+            output_core_dims=[output_core_dims],
             **apply_kwargs,
         )
+        if not isinstance(out, xr.DataArray):
+            for elem in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
+                if isinstance(elem, xr.DataArray):
+                    for name, values in elem.coords.items():
+                        if name in coords:
+                            continue
+                        if set(values.dims) < set(output_core_dims):
+                            coords[name] = values
+
+            return xr.DataArray(out, dims=output_core_dims, coords=coords)
+        return out.assign_coords(coords)
 
 
 class XrContinuousRV(XrRV):
@@ -381,7 +412,7 @@ class multivariate_normal:  # pylint: disable=invalid-name
             cov_chol = cholesky(cov + 1e-10 * eye, dims=dims)
         std_norm = XrContinuousRV(stats.norm, xr.zeros_like(mean.rename({dim1: dim2})), 1)
         samples = std_norm.rvs(size=size, dims=rv_dims, random_state=random_state)
-        return mean + xr.dot(cov_chol, samples, dims=dim2)
+        return mean + xr.dot(cov_chol, samples, dim=dim2)
 
     def logpdf(self, x, mean=None, cov=None, dims=None):
         """Evaluate the logarithm of the multivariate normal probability density function."""
@@ -394,7 +425,7 @@ class multivariate_normal:  # pylint: disable=invalid-name
         logdet_cov = np.log(vals).sum(dim=dim2)
         u_mat = vecs * np.sqrt(1.0 / vals.rename({dim2: dim1}))
         x_mu = x - mean
-        maha = np.square(xr.dot(x_mu.rename({dim1: dim2}), u_mat, dims=dim2)).sum(dim=dim1)
+        maha = np.square(xr.dot(x_mu.rename({dim1: dim2}), u_mat, dim=dim2)).sum(dim=dim1)
         return -0.5 * (k * np.log(2 * np.pi) + maha + logdet_cov)
 
     def pdf(self, x, mean=None, cov=None, dims=None):
