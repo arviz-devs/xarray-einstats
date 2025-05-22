@@ -67,6 +67,7 @@
 
   solve
   inv
+  pinv
 ```
 
 ## Convenience functions

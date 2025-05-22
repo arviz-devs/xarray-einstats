@@ -55,7 +55,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     ----------
     da : DataArray
         Data to be binned.
-    dims : str or list of str
+    dims : hashable or sequence of hashable
         Dimensions that should be reduced by binning.
     bins : array_like, int or str, optional
         Passed to :func:`numpy.histogram_bin_edges`. If ``None`` (the default)
@@ -67,7 +67,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
         normalized such that the integral over the range is 1.
         Note that the sum of the histogram values will not be equal to 1 unless
         bins of unity width are chosen; it is not a probability mass function.
-    kwargs : dict, optional
+    **kwargs
         Passed to :func:`xarray.apply_ufunc`
 
     Returns
@@ -166,10 +166,10 @@ def searchsorted(da, v, dims=None, **kwargs):
         Input data
     v : DataArray
         The values to insert into `da`.
-    dims : str or iterable of str, optional
+    dims : hashable or sequence of hashable, optional
         The dimensions over which to apply the searchsort. Computation
         will be parallelized over the rest with numba.
-    **kwargs : dict, optional
+    **kwargs
         Keyword arguments passed as-is to :func:`xarray.apply_ufunc`.
 
     Notes
@@ -208,7 +208,7 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
     ----------
     da : DataArray
         Input data containing the samples on which we want to compute the ecdf.
-    dims : str or iterable of str, optional
+    dims : hashable or sequence of hashable, optional
         Dimensions over which the ecdf should be computed. They are flattened
         and converted to a ``quantile`` dimension that contains the values
         to plot; the other dimensions should be used for facetting and aesthetics.
@@ -217,7 +217,7 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
         Number of points on which to evaluate the ecdf. It defaults
         to the minimum between 200 and the total number of points in each
         block defined by `dims`.
-    **kwargs : dict, optional
+    **kwargs
         Keyword arguments passed as-is to :func:`xarray.apply_ufunc` through
         :func:`~xarray_einstats.numba.searchsorted`.
 
@@ -269,7 +269,7 @@ def ecdf(da, dims=None, *, npoints=None, **kwargs):
         dims = da.dims
     elif isinstance(dims, str):
         dims = [dims]
-    total_points = np.prod([da.sizes[d] for d in dims])
+    total_points = int(np.prod([da.sizes[d] for d in dims]))
     if npoints is None:
         npoints = min(total_points, 200)
     x = xr.DataArray(np.linspace(0, 1, npoints), dims=["quantile"])

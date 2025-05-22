@@ -1,5 +1,7 @@
 # pylint: disable=redefined-outer-name, no-self-use, too-many-positional-arguments
 """Test the stats module."""
+import warnings
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -36,22 +38,46 @@ def stacked_data(data):
     return data["mu"].rename(chain="aux").expand_dims(aux2=2).stack(chain=("aux", "aux2"))
 
 
-@pytest.mark.parametrize("wrapper", ("continuous", "discrete"))
+def get_dist_and_clean_method(wrapper, data, method=None, in_type="array"):
+    par2 = 1 if in_type == "scalar" else data["sigma"]
+    if wrapper in ("continuous", "preliz"):
+        if wrapper == "continuous":
+            raw_dist = stats.norm
+        else:
+            try:
+                from preliz import Normal
+
+                raw_dist = Normal
+            except ImportError:
+                pytest.skip("PreliZ not installed")
+        dist = XrContinuousRV(raw_dist, data["mu"], par2)
+    elif wrapper == "rv_continuous":
+        dist = XrContinuousRV(stats.Normal, mu=data["mu"], sigma=par2)
+    elif wrapper == "discrete":
+        dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
+    else:
+        raise ValueError(f"Unkown value for 'wrapper': {wrapper}")
+    if method is not None and "pxf" in method:
+        method = method.replace("x", "m" if wrapper == "discrete" else "d")
+    if method is not None:
+        return dist, method
+    return dist
+
+
+@pytest.mark.parametrize("wrapper", ("continuous", "discrete", "preliz", "rv_continuous"))
 class TestRvWrappers:
     @pytest.mark.parametrize(
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
     def test_eval_methods_scalar(self, data, wrapper, method):
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
-            if "pxf" in method:
-                method = method.replace("x", "d")
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
-            if "pxf" in method:
-                method = method.replace("x", "m")
+        dist, method = get_dist_and_clean_method(wrapper, data, method)
         meth = getattr(dist, method)
-        out = meth(0.9)
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(0.9)
         assert out.ndim == 3
         assert_dims_not_in_da(out, ["quantile", "point"])
 
@@ -59,17 +85,15 @@ class TestRvWrappers:
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
     def test_eval_methods_array(self, data, wrapper, method):
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
-            if "pxf" in method:
-                method = method.replace("x", "d")
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
-            if "pxf" in method:
-                method = method.replace("x", "m")
+        dist, method = get_dist_and_clean_method(wrapper, data, method)
         vals = np.linspace(0, 1, 10)
         meth = getattr(dist, method)
-        out = meth(vals)
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(vals)
         assert out.ndim == 4
         if method in {"ppf", "isf"}:
             assert "quantile" in out.dims
@@ -81,28 +105,21 @@ class TestRvWrappers:
     )
     @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
     def test_eval_methods_dataarray(self, data, wrapper, method, in_type):
-        par2 = 1 if in_type == "scalar" else data["sigma"]
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], par2)
-            if "pxf" in method:
-                method = method.replace("x", "d")
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
-            if "pxf" in method:
-                method = method.replace("x", "m")
+        dist, method = get_dist_and_clean_method(wrapper, data, method, in_type=in_type)
         meth = getattr(dist, method)
-        out = meth(data["x_plot"])
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(data["x_plot"])
         assert out.ndim == 4
         assert "plot_dim" in out.dims
 
     @pytest.mark.parametrize("dim_names", (None, ("name1", "name2")))
     @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
     def test_rv_method(self, data, wrapper, dim_names, in_type):
-        par2 = 1 if in_type == "scalar" else data["sigma"]
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], par2)
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
+        dist = get_dist_and_clean_method(wrapper, data, in_type=in_type)
         out = dist.rvs(size=(2, 7), dims=dim_names)
         if dim_names is None:
             dim_names = ["rv_dim0", "rv_dim1"]
@@ -113,10 +130,7 @@ class TestRvWrappers:
     @pytest.mark.parametrize("size", (1, 10))
     @pytest.mark.parametrize("dims", (None, "name", ["name"]))
     def test_rv_method_scalar_size(self, data, wrapper, size, dims):
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], data["sigma"])
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], data["sigma"])
+        dist = get_dist_and_clean_method(wrapper, data)
         out = dist.rvs(size=size, dims=dims)
         dim_name = "rv_dim0" if dims is None else "name"
         if size == 1:
@@ -126,22 +140,33 @@ class TestRvWrappers:
             assert len(out[dim_name]) == size
 
     def test_non_broadcastable_input(self, data, wrapper):
-        if wrapper == "continuous":
-            dist = XrContinuousRV(stats.norm, data["mu"], 1)
-        else:
-            dist = XrDiscreteRV(stats.poisson, data["mu"], 1)
+        dist = get_dist_and_clean_method(wrapper, data, in_type="scalar")
         out = dist.cdf([1, 2])
         expected_dims = [*data["mu"].dims, "point"]
         assert out.ndim == len(expected_dims)
         assert_dims_in_da(out, expected_dims)
 
     def test_kwargs_input(self, data, wrapper):
+        if wrapper == "rv_continuous":
+            pytest.skip(
+                "Only kwargs are valid for SciPy RVs, can't check match between args and kwargs"
+            )
         if wrapper == "continuous":
             dist1 = XrContinuousRV(stats.norm, data["mu"], 1)
             dist2 = XrContinuousRV(stats.norm, loc=data["mu"], scale=1)
-        else:
+        elif wrapper == "preliz":
+            try:
+                from preliz import Normal
+
+                dist1 = XrContinuousRV(Normal, data["mu"], 1)
+                dist2 = XrContinuousRV(Normal, mu=data["mu"], sigma=1)
+            except ImportError:
+                pytest.skip("PreliZ not installed")
+        elif wrapper == "discrete":
             dist1 = XrDiscreteRV(stats.poisson, data["mu"], 1)
             dist2 = XrDiscreteRV(stats.poisson, mu=data["mu"], loc=1)
+        else:
+            raise ValueError(f"Unkown value for 'wrapper': {wrapper}")
         out1 = dist1.cdf([1, 2])
         out2 = dist2.cdf([1, 2])
         expected_dims = [*data["mu"].dims, "point"]

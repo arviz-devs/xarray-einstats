@@ -131,6 +131,14 @@ class TestWrappers:
         assert_dims_in_da(out, ("batch", "experiment"))
         assert_dims_not_in_da(out, ["dim", "dim2"])
 
+    @pytest.mark.parametrize("kind", ("tol", "rtol"))
+    def test_matrix_rank_dataarray_tol(self, matrices, kind):
+        kwargs = {kind: xr.DataArray([1e-2, 1e-3, 1e-5], dims=["experiment"])}
+        out = matrix_rank(matrices, dims=("dim", "dim2"), **kwargs)
+        assert out.shape == (10, 3)
+        assert_dims_in_da(out, ("batch", "experiment"))
+        assert_dims_not_in_da(out, ["dim", "dim2"])
+
     def test_vector_norm(self, matrices):
         out = norm(matrices, dims="experiment")
         assert_dims_in_da(out, ("batch", "dim", "dim2"))
@@ -144,6 +152,14 @@ class TestWrappers:
     def test_pinv(self, matrices):
         out = pinv(matrices, dims=("experiment", "dim"))
         out_dims_exp = ("batch", "dim2", "dim", "experiment")
+        assert out.dims == out_dims_exp
+        assert out.shape == tuple(out.sizes[dim] for dim in out_dims_exp)
+
+    @pytest.mark.parametrize("kind", ("rcond", "rtol"))
+    def test_pinv_dataarray_tol(self, matrices, kind):
+        kwargs = {kind: xr.DataArray([1e-2, 1e-3, 1e-5], dims=["experiment"])}
+        out = pinv(matrices, dims=("batch", "dim"), **kwargs)
+        out_dims_exp = ("experiment", "dim2", "dim", "batch")
         assert out.dims == out_dims_exp
         assert out.shape == tuple(out.sizes[dim] for dim in out_dims_exp)
 

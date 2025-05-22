@@ -14,7 +14,6 @@ Details about the exact command are available at :ref:`installation`
 
 """
 
-import warnings
 from collections.abc import Hashable
 
 import einops
@@ -56,7 +55,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
 
     Parameters
     ----------
-    redims : pattern_list
+    redims : list of (hashable or list or dict)
         One of ``out_dims`` or ``in_dims`` in {func}`~xarray_einstats.einops.rearrange`
         or {func}`~xarray_einstats.einops.reduce`.
     handler : DimHandler
@@ -75,7 +74,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
         It differs from ``expression_dims`` because there might be dimensions
         being stacked.
     pattern : str
-        The einops expression equivalent to the operations in ``redims`` pattern
+        The einops expression equivalent to the operations in `redims` pattern
         list.
 
     Examples
@@ -134,7 +133,7 @@ def translate_pattern(pattern):
 
     Returns
     -------
-    pattern_list
+    list of (hashable or list or dict)
         Pattern translated to list, as used by the direct feature-full wrappers.
 
     Examples
@@ -198,9 +197,9 @@ def _rearrange(da, out_dims, in_dims=None, dim_lengths=None):
     ----------
     da : xarray.DataArray
         Input DataArray to be rearranged
-    out_dims : list of str, list or dict
+    out_dims : list of (str or list or dict)
         See docstring of :func:`~xarray_einstats.einops.rearrange`
-    in_dims : list of str or dict, optional
+    in_dims : list of (str or dict), optional
         See docstring of :func:`~xarray_einstats.einops.rearrange`
     dim_lengths : dict, optional
         kwargs with key equal to dimension names in ``out_dims``
@@ -264,7 +263,7 @@ def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwar
     ----------
     da : xarray.DataArray
         Input array
-    pattern : str or list of [hashable, list or dict]
+    pattern : str or list of (hashable or list or dict)
         If `pattern` is a string, it uses the same syntax as einops
         with two caveats:
 
@@ -281,7 +280,7 @@ def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwar
 
         `pattern` is then interpreted as the output side of the einops pattern.
         See :ref:`about_einops` for more details.
-    pattern_in : list of [str or dict], optional
+    pattern_in : list of (hashable or dict), optional
         The input pattern for the dimensions. It can only be provided if `pattern`
         is a ``list``. Also, note this is only necessary if you want to split some dimensions.
 
@@ -289,10 +288,12 @@ def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwar
         with the only difference that ``list`` elements are not allowed, the same way
         that ``(dim1 dim2)=dim`` is required on the left hand side when using string
         patterns.
-    dim_lengths, **dim_lengths_kwargs : dict, optional
+    dim_lengths : dict of {hashable : int}, optional
         If the keys are dimensions present in `pattern` they will be passed to
         `einops.rearrange <https://einops.rocks/api/rearrange/>`_, otherwise,
         they are passed to :func:`xarray.apply_ufunc`.
+    **dim_lengths_kwargs : int, optional
+        kwarg version of `dim_lengths`.
 
     Returns
     -------
@@ -329,17 +330,17 @@ def _reduce(da, reduction, out_dims, in_dims=None, dim_lengths=None):
     ----------
     da : xarray.DataArray
         Input DataArray to be reduced
-    reduction : string or callable
+    reduction : str or callable
         One of available reductions ('min', 'max', 'sum', 'mean', 'prod') by ``einops.reduce``,
         case-sensitive. Alternatively, a callable ``f(tensor, reduced_axes) -> tensor``
         can be provided. ``reduced_axes`` are passed as a list of int.
-    out_dims : list of str, list or dict
+    out_dims : list of (str or list or dict)
         The output pattern for the dimensions.
         The dimensions present in
-    in_dims : list of str or dict, optional
+    in_dims : list of (str or dict), optional
         The input pattern for the dimensions.
         This is only necessary if you want to split some dimensions.
-    dim_lengths : dict, optional
+    dim_lengths : dict of {hashable : int}, optional
         kwargs with key equal to dimension names in ``out_dims``
         (that is, strings or dict keys) are passed to einops.rearrange
         the rest of keys are passed to :func:`xarray.apply_ufunc`
@@ -388,7 +389,7 @@ def reduce(da, pattern, reduction, pattern_in=None, dim_lengths=None, **dim_leng
     ----------
     da : xarray.DataArray
         Input array
-    pattern : str or list of [str, list or dict]
+    pattern : str or list of (str or list or dict)
         If `pattern` is a string, it uses the same syntax as einops
         with two caveats:
 
@@ -405,21 +406,23 @@ def reduce(da, pattern, reduction, pattern_in=None, dim_lengths=None, **dim_leng
 
         `pattern` is then interpreted as the output side of the einops pattern. See
         TODO for more details.
-    reduction : string or callable
+    reduction : str or callable
         One of available reductions ('min', 'max', 'sum', 'mean', 'prod') by ``einops.reduce``,
         case-sensitive. Alternatively, a callable ``f(tensor, reduced_axes) -> tensor``
         can be provided. ``reduced_axes`` are passed as a list of int.
-    pattern_in : list of [str or dict], optional
+    pattern_in : list of (str or dict), optional
         The input pattern for the dimensions. It can only be provided if `pattern`
         is a ``list``. Also, note this is only necessary if you want to split some dimensions.
 
         The syntax and interpretation is the same as the case when `pattern` is a list,
         with the only difference that ``list`` elements are not allowed, the same way
         that ``(dim1 dim2)=dim`` is required on the left hand side when using string
-    dim_lengths, **dim_lengths_kwargs : dict, optional
+    dim_lengths : dict of {hashable : int}, optional
         If the keys are dimensions present in `pattern` they will be passed to
         `einops.reduce <https://einops.rocks/api/reduce/>`_, otherwise,
         they are passed to :func:`xarray.apply_ufunc`.
+    **dim_lengths_kwargs : int, optional
+        Kwargs version of `dim_lengths`.
 
     Returns
     -------
@@ -442,30 +445,6 @@ def reduce(da, pattern, reduction, pattern_in=None, dim_lengths=None, **dim_leng
         out_dims = translate_pattern(out_pattern)
         return _reduce(da, reduction, out_dims=out_dims, in_dims=in_dims, dim_lengths=dim_lengths)
     return _reduce(da, reduction, out_dims=pattern, in_dims=pattern_in, dim_lengths=dim_lengths)
-
-
-def raw_reduce(*args, **kwargs):
-    """Wrap einops.reduce.
-
-    DEPRECATED
-    """
-    warnings.warn(
-        "raw_reduce has been deprecated. Its functionality has been merged into reduce",
-        DeprecationWarning,
-    )
-    return reduce(*args, **kwargs)
-
-
-def raw_rearrange(*args, **kwargs):
-    """Wrap einops.rearrange.
-
-    DEPRECATED
-    """
-    warnings.warn(
-        "raw_rearrange has been deprecated. Its functionality has been merged into rearrange",
-        DeprecationWarning,
-    )
-    return rearrange(*args, **kwargs)
 
 
 class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protected-access

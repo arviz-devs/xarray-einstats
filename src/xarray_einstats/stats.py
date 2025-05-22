@@ -25,6 +25,13 @@ __all__ = [
     "skew",
 ]
 
+_SCIPY_RV_MAP = {
+    "sf": "ccdf",
+    "logsf": "logccdf",
+    "ppf": "icdf",
+    "isf": "iccdf",
+}
+
 
 def get_default_dims(dims):
     """Get default dims on which to perfom an operation.
@@ -104,16 +111,21 @@ def _asdataarray(x_or_q, dim_name):
 
 
 def _wrap_method(method):
+    # pylint: disable=protected-access
     def aux(self, *args, apply_kwargs=None, **kwargs):
+        method = aux.method
         dim_name = "quantile" if method in {"ppf", "isf"} else "point"
+        if self.scipy_rv:
+            method = _SCIPY_RV_MAP.get(method, method)
         if apply_kwargs is None:
             apply_kwargs = {}
-        meth = getattr(self.dist, method)
         if args:
             args = (_asdataarray(args[0], dim_name), *args[1:])
-        args, kwargs = self._broadcast_args(args, kwargs)  # pylint: disable=protected-access
+        dist_args, dist_kwargs, args, kwargs = self._broadcast_args(args, kwargs)
+        meth = getattr(self.dist(*dist_args, **dist_kwargs), method)
         return xr.apply_ufunc(meth, *args, kwargs=kwargs, **apply_kwargs)
 
+    aux.method = method
     return aux
 
 
@@ -134,6 +146,9 @@ class XrRV:
     """
 
     def __init__(self, dist, *args, **kwargs):
+        # TODO: improve once scipy new random variables stabilize a bit and hopefully expose
+        # a base class for use to use isinstance(dist, baseclass) or something similar
+        self.scipy_rv = not hasattr(dist, "rvs")
         self.dist = dist
         self.args = args
         self.kwargs = kwargs
@@ -162,25 +177,45 @@ class XrRV:
             )
         ]
         all_keys = list(kwargs.keys()) + list(self.kwargs.keys())
-        args = all_args[:len_args]
-        kwargs = dict(zip(all_keys, all_args[len_args:]))
-        return args, kwargs
+        args = all_args[: len(args)]
+        dist_args = all_args[len(args) : len_args]
+        kwargs = dict(zip(all_keys[: len(kwargs)], all_args[len_args : len_args + len(kwargs)]))
+        dist_kwargs = dict(zip(all_keys[len(kwargs) :], all_args[len_args + len(kwargs) :]))
+        return dist_args, dist_kwargs, args, kwargs
 
-    def rvs(self, *args, size=1, random_state=None, dims=None, apply_kwargs=None, **kwargs):
+    def rvs(
+        self,
+        *args,
+        size=None,
+        random_state=None,
+        dims=None,
+        coords=None,
+        apply_kwargs=None,
+        **kwargs,
+    ):
         """Implement base rvs method.
 
         In scipy, rvs has a common signature that doesn't depend on continuous
         or discrete, so we can define it here.
         """
-        args, kwargs = self._broadcast_args(args, kwargs)
+        dist_args, dist_kwargs, args, kwargs = self._broadcast_args(args, kwargs)
         size_in = tuple()
         dims_in = tuple()
-        for a in (*args, *kwargs.values()):
+        for a in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
             if isinstance(a, xr.DataArray):
                 size_in = a.shape
                 dims_in = a.dims
                 break
 
+        if size is None and dims is None and coords is not None:
+            size = [len(vals) for vals in coords.values()]
+            dims = list(coords.keys())
+        if size is None:
+            size = 1
+        # used as `shape` in new scipy rvs
+        original_size = () if size == 1 else size
+        if coords is None:
+            coords = {}
         if isinstance(dims, str):
             dims = [dims]
 
@@ -207,14 +242,33 @@ class XrRV:
         if apply_kwargs is None:
             apply_kwargs = {}
 
-        return xr.apply_ufunc(
-            self.dist.rvs,
+        output_core_dims = [*dims, *dims_in]
+        dist = self.dist(*dist_args, **dist_kwargs)
+        if self.scipy_rv:
+            func = dist.sample
+            kwargs = {**kwargs, "shape": original_size, "rng": random_state}
+        else:
+            func = dist.rvs
+            kwargs = {**kwargs, "size": size, "random_state": random_state}
+        out = xr.apply_ufunc(
+            func,
             *args,
-            kwargs={**kwargs, "size": size, "random_state": random_state},
+            kwargs=kwargs,
             input_core_dims=[dims_in for _ in args],
-            output_core_dims=[[*dims, *dims_in]],
+            output_core_dims=[output_core_dims],
             **apply_kwargs,
         )
+        if not isinstance(out, xr.DataArray):
+            for elem in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
+                if isinstance(elem, xr.DataArray):
+                    for name, values in elem.coords.items():
+                        if name in coords:
+                            continue
+                        if set(values.dims) < set(output_core_dims):
+                            coords[name] = values
+
+            return xr.DataArray(out, dims=output_core_dims, coords=coords)
+        return out.assign_coords(coords)
 
 
 class XrContinuousRV(XrRV):
@@ -284,9 +338,10 @@ def _add_documented_method(cls, wrapped_cls, methods, extra_docs=None):
         setattr(
             method,
             "__doc__",
-            f"Method wrapping :meth:`scipy.stats.{wrapped_cls}.{method_name}` "
+            f"Method wrapping ``.{method_name}`` of the input distribution "
             "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
-            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}",
+            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}\n\nReturns\n-------\nDataArray\n\n"
+            f"See Also\n--------\n:meth:`scipy.stats.{wrapped_cls}.{method_name}`",
         )
         setattr(cls, method_name, method)
 
@@ -295,9 +350,9 @@ doc_extras = {
     "rvs": """
 Parameters
 ----------
-args : scalar or array_like, optional
+*args : scalar or array_like or DataArray, optional
     Passed to the scipy distribution after broadcasting.
-size : int of sequence of ints, optional
+size : int of sequence of int, optional
     The number of samples to draw *per array element*. If the distribution
     parameters broadcast to a ``(4, 10, 6)`` shape and ``size=(5, 3)`` then
     the output shape is ``(5, 3, 4, 10, 6)``. This differs from the scipy
@@ -306,14 +361,16 @@ size : int of sequence of ints, optional
     If ``size`` followed scipy behaviour, you'd be forced to broadcast
     to provide a valid value which would defeat the ``xarray_einstats`` goal
     of handling all alignment and broadcasting for you.
-random_state : optional
+random_state : int or np.Generator, optional
     Passed as is to the wrapped scipy distribution
-dims : str or sequence of str, optional
+dims : hashable or sequence of hashable, optional
     Dimension names for the dimensions created due to ``size``. If present
     it must have the same length as ``size``.
+coords : mapping of {hashable : array_like or DataArray}, optional
+    Mapping of coordinate name to coordinate values.
 apply_kwargs : dict, optional
     Passed to :func:`xarray.apply_ufunc`
-kwargs : dict, optional
+**kwargs
     Passed to the scipy distribution after broadcasting using the same key.
 """
 }
@@ -381,7 +438,7 @@ class multivariate_normal:  # pylint: disable=invalid-name
             cov_chol = cholesky(cov + 1e-10 * eye, dims=dims)
         std_norm = XrContinuousRV(stats.norm, xr.zeros_like(mean.rename({dim1: dim2})), 1)
         samples = std_norm.rvs(size=size, dims=rv_dims, random_state=random_state)
-        return mean + xr.dot(cov_chol, samples, dims=dim2)
+        return mean + xr.dot(cov_chol, samples, dim=dim2)
 
     def logpdf(self, x, mean=None, cov=None, dims=None):
         """Evaluate the logarithm of the multivariate normal probability density function."""
@@ -394,7 +451,7 @@ class multivariate_normal:  # pylint: disable=invalid-name
         logdet_cov = np.log(vals).sum(dim=dim2)
         u_mat = vecs * np.sqrt(1.0 / vals.rename({dim2: dim1}))
         x_mu = x - mean
-        maha = np.square(xr.dot(x_mu.rename({dim1: dim2}), u_mat, dims=dim2)).sum(dim=dim1)
+        maha = np.square(xr.dot(x_mu.rename({dim1: dim2}), u_mat, dim=dim2)).sum(dim=dim1)
         return -0.5 * (k * np.log(2 * np.pi) + maha + logdet_cov)
 
     def pdf(self, x, mean=None, cov=None, dims=None):
@@ -452,6 +509,17 @@ def rankdata(da, dims=None, *, method=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.rankdata`.
 
     Usage examples available at :ref:`stats_tutorial`
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : hashable or sequence of hashable, optional
+    method : str, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
 
     See Also
     --------
