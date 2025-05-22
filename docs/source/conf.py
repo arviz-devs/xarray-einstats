@@ -80,7 +80,7 @@ autodoc_default_options = {
 
 numpydoc_show_class_members = False
 numpydoc_xref_param_type = True
-numpydoc_xref_ignore = {"of", "or", "optional", "scalar"}
+numpydoc_xref_ignore = {"of", "or", "optional"}
 singulars = ("int", "list", "dict", "float")
 numpydoc_xref_aliases = {
     "DataArray": ":class:`xarray.DataArray`",
@@ -88,6 +88,11 @@ numpydoc_xref_aliases = {
     "pattern_list": "list of str, list or dict",
     "DimHandler": ":class:`~xarray_einstats.einops.DimHandler`",
     **{f"{singular}s": f":any:`{singular}s <{singular}>`" for singular in singulars},
+    "scalar": ":term:`numpy:scalar`",
+    "iterable": ":term:`python:iterable`",
+    "sequence": ":term:`python:sequence`",
+    "mapping": ":term:`python:mapping`",
+    "hashable": ":term:`python:hashable`",
 }
 
 # Include the example source for plots in API docs

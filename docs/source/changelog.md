@@ -1,5 +1,15 @@
 # Change Log
 
+## v0.9.0 (Unreleased)
+### New features
+* Support PreliZ distributions as input to RV wrappers {pull}`70`
+* Support new SciPy random variables as input to RV wrappers {pull}`70`
+* Allow specifying the shape of `.rvs` output through `coords` argument {pull}`70`
+
+### Maintenance and fixes
+* Update publish workflow to follow best practices {pull}`70`
+* Use `dim` in `xarray.dot` instead of deprecated `dims` {pull}`70`
+
 ## v0.8.0 (2024 Sep 19)
 ### New features
 * Add `numpy.linalg.pinv` wrapper {pull}`63`

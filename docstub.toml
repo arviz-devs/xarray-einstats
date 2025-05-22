@@ -1,0 +1,15 @@
+[tool.docstub.known_imports]
+xarray = {import = "xarray"}
+numbers = {import = "numbers"}
+
+# Specify human-friendly aliases that can be used instead of Python-parsable
+# annotations.
+# TODO rename to qualname_alias or something
+[tool.docstub.replace_doctypes]
+hashable = "Hashable"
+iterator = "Iterator"
+scalar = "numbers.Number"
+dtype = "np.typing.DTypeLike"
+Dataset = "xarray.Dataset"
+DataTree = "xarray.DataTree"
+DataArray = "xarray.DataArray"

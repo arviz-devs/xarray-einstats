@@ -1,5 +1,7 @@
 # pylint: disable=redefined-outer-name, no-self-use, too-many-positional-arguments
 """Test the stats module."""
+import warnings
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -49,8 +51,12 @@ def get_dist_and_clean_method(wrapper, data, method=None, in_type="array"):
             except ImportError:
                 pytest.skip("PreliZ not installed")
         dist = XrContinuousRV(raw_dist, data["mu"], par2)
-    else:
+    elif wrapper == "rv_continuous":
+        dist = XrContinuousRV(stats.Normal, mu=data["mu"], sigma=par2)
+    elif wrapper == "discrete":
         dist = XrDiscreteRV(stats.poisson, data["mu"], par2)
+    else:
+        raise ValueError(f"Unkown value for 'wrapper': {wrapper}")
     if method is not None and "pxf" in method:
         method = method.replace("x", "m" if wrapper == "discrete" else "d")
     if method is not None:
@@ -58,17 +64,20 @@ def get_dist_and_clean_method(wrapper, data, method=None, in_type="array"):
     return dist
 
 
-@pytest.mark.parametrize("wrapper", ("continuous", "discrete", "preliz"))
+@pytest.mark.parametrize("wrapper", ("continuous", "discrete", "preliz", "rv_continuous"))
 class TestRvWrappers:
     @pytest.mark.parametrize(
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
     def test_eval_methods_scalar(self, data, wrapper, method):
-        if wrapper == "preliz" and (method.endswith("sf") or method == "logcdf"):
-            pytest.skip("Method not available in PreliZ")
         dist, method = get_dist_and_clean_method(wrapper, data, method)
         meth = getattr(dist, method)
-        out = meth(0.9)
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(0.9)
         assert out.ndim == 3
         assert_dims_not_in_da(out, ["quantile", "point"])
 
@@ -76,12 +85,15 @@ class TestRvWrappers:
         "method", ("pxf", "logpxf", "cdf", "logcdf", "sf", "logsf", "ppf", "isf")
     )
     def test_eval_methods_array(self, data, wrapper, method):
-        if wrapper == "preliz" and (method.endswith("sf") or method == "logcdf"):
-            pytest.skip("Method not available in PreliZ")
         dist, method = get_dist_and_clean_method(wrapper, data, method)
         vals = np.linspace(0, 1, 10)
         meth = getattr(dist, method)
-        out = meth(vals)
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(vals)
         assert out.ndim == 4
         if method in {"ppf", "isf"}:
             assert "quantile" in out.dims
@@ -93,11 +105,14 @@ class TestRvWrappers:
     )
     @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
     def test_eval_methods_dataarray(self, data, wrapper, method, in_type):
-        if wrapper == "preliz" and (method.endswith("sf") or method == "logcdf"):
-            pytest.skip("Method not available in PreliZ")
         dist, method = get_dist_and_clean_method(wrapper, data, method, in_type=in_type)
         meth = getattr(dist, method)
-        out = meth(data["x_plot"])
+        with warnings.catch_warnings():
+            if wrapper == "preliz" and method in ("logcdf", "logsf"):
+                warnings.filterwarnings(
+                    "ignore", message="divide by zero encountered in log", category=RuntimeWarning
+                )
+            out = meth(data["x_plot"])
         assert out.ndim == 4
         assert "plot_dim" in out.dims
 
@@ -132,6 +147,10 @@ class TestRvWrappers:
         assert_dims_in_da(out, expected_dims)
 
     def test_kwargs_input(self, data, wrapper):
+        if wrapper == "rv_continuous":
+            pytest.skip(
+                "Only kwargs are valid for SciPy RVs, can't check match between args and kwargs"
+            )
         if wrapper == "continuous":
             dist1 = XrContinuousRV(stats.norm, data["mu"], 1)
             dist2 = XrContinuousRV(stats.norm, loc=data["mu"], scale=1)
@@ -143,9 +162,11 @@ class TestRvWrappers:
                 dist2 = XrContinuousRV(Normal, mu=data["mu"], sigma=1)
             except ImportError:
                 pytest.skip("PreliZ not installed")
-        else:
+        elif wrapper == "discrete":
             dist1 = XrDiscreteRV(stats.poisson, data["mu"], 1)
             dist2 = XrDiscreteRV(stats.poisson, mu=data["mu"], loc=1)
+        else:
+            raise ValueError(f"Unkown value for 'wrapper': {wrapper}")
         out1 = dist1.cdf([1, 2])
         out2 = dist2.cdf([1, 2])
         expected_dims = [*data["mu"].dims, "point"]

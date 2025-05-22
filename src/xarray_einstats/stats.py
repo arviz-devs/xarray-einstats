@@ -25,6 +25,13 @@ __all__ = [
     "skew",
 ]
 
+_SCIPY_RV_MAP = {
+    "sf": "ccdf",
+    "logsf": "logccdf",
+    "ppf": "icdf",
+    "isf": "iccdf",
+}
+
 
 def get_default_dims(dims):
     """Get default dims on which to perfom an operation.
@@ -106,7 +113,10 @@ def _asdataarray(x_or_q, dim_name):
 def _wrap_method(method):
     # pylint: disable=protected-access
     def aux(self, *args, apply_kwargs=None, **kwargs):
+        method = aux.method
         dim_name = "quantile" if method in {"ppf", "isf"} else "point"
+        if self.scipy_rv:
+            method = _SCIPY_RV_MAP.get(method, method)
         if apply_kwargs is None:
             apply_kwargs = {}
         if args:
@@ -115,6 +125,7 @@ def _wrap_method(method):
         meth = getattr(self.dist(*dist_args, **dist_kwargs), method)
         return xr.apply_ufunc(meth, *args, kwargs=kwargs, **apply_kwargs)
 
+    aux.method = method
     return aux
 
 
@@ -135,6 +146,9 @@ class XrRV:
     """
 
     def __init__(self, dist, *args, **kwargs):
+        # TODO: improve once scipy new random variables stabilize a bit and hopefully expose
+        # a base class for use to use isinstance(dist, baseclass) or something similar
+        self.scipy_rv = not hasattr(dist, "rvs")
         self.dist = dist
         self.args = args
         self.kwargs = kwargs
@@ -198,6 +212,8 @@ class XrRV:
             dims = list(coords.keys())
         if size is None:
             size = 1
+        # used as `shape` in new scipy rvs
+        original_size = () if size == 1 else size
         if coords is None:
             coords = {}
         if isinstance(dims, str):
@@ -227,10 +243,17 @@ class XrRV:
             apply_kwargs = {}
 
         output_core_dims = [*dims, *dims_in]
+        dist = self.dist(*dist_args, **dist_kwargs)
+        if self.scipy_rv:
+            func = dist.sample
+            kwargs = {**kwargs, "shape": original_size, "rng": random_state}
+        else:
+            func = dist.rvs
+            kwargs = {**kwargs, "size": size, "random_state": random_state}
         out = xr.apply_ufunc(
-            self.dist(*dist_args, **dist_kwargs).rvs,
+            func,
             *args,
-            kwargs={**kwargs, "size": size, "random_state": random_state},
+            kwargs=kwargs,
             input_core_dims=[dims_in for _ in args],
             output_core_dims=[output_core_dims],
             **apply_kwargs,
@@ -315,9 +338,10 @@ def _add_documented_method(cls, wrapped_cls, methods, extra_docs=None):
         setattr(
             method,
             "__doc__",
-            f"Method wrapping :meth:`scipy.stats.{wrapped_cls}.{method_name}` "
+            f"Method wrapping ``.{method_name}`` of the input distribution "
             "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
-            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}",
+            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}\n\nReturns\n-------\nDataArray\n\n"
+            f"See Also\n--------\n:meth:`scipy.stats.{wrapped_cls}.{method_name}`",
         )
         setattr(cls, method_name, method)
 
@@ -326,9 +350,9 @@ doc_extras = {
     "rvs": """
 Parameters
 ----------
-args : scalar or array_like, optional
+*args : scalar or array_like or DataArray, optional
     Passed to the scipy distribution after broadcasting.
-size : int of sequence of ints, optional
+size : int of sequence of int, optional
     The number of samples to draw *per array element*. If the distribution
     parameters broadcast to a ``(4, 10, 6)`` shape and ``size=(5, 3)`` then
     the output shape is ``(5, 3, 4, 10, 6)``. This differs from the scipy
@@ -337,14 +361,16 @@ size : int of sequence of ints, optional
     If ``size`` followed scipy behaviour, you'd be forced to broadcast
     to provide a valid value which would defeat the ``xarray_einstats`` goal
     of handling all alignment and broadcasting for you.
-random_state : optional
+random_state : int or np.Generator, optional
     Passed as is to the wrapped scipy distribution
-dims : str or sequence of str, optional
+dims : hashable or sequence of hashable, optional
     Dimension names for the dimensions created due to ``size``. If present
     it must have the same length as ``size``.
+coords : mapping of {hashable : array_like or DataArray}, optional
+    Mapping of coordinate name to coordinate values.
 apply_kwargs : dict, optional
     Passed to :func:`xarray.apply_ufunc`
-kwargs : dict, optional
+**kwargs
     Passed to the scipy distribution after broadcasting using the same key.
 """
 }
@@ -483,6 +509,17 @@ def rankdata(da, dims=None, *, method=None, **kwargs):
     """Wrap and extend :func:`scipy.stats.rankdata`.
 
     Usage examples available at :ref:`stats_tutorial`
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : hashable or sequence of hashable, optional
+    method : str, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
 
     See Also
     --------

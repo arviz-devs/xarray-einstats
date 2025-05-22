@@ -52,8 +52,8 @@ test = [
     "pytest",
     "pytest-cov",
     "packaging",
-    "preliz",
-    "preliz",
+    "scipy>=1.15",
+    "preliz>=0.19",
 ]
 doc = [
     "furo",

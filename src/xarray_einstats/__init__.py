@@ -22,11 +22,31 @@ __all__ = [
 __version__ = "0.8.0"
 
 
-def sort(da, dim, **kwargs):
-    """Sort along dimension using DataArray values."""
-    sort_kwargs = {"axis": -1}
-    if "kind" in kwargs:
-        sort_kwargs["kind"] = kwargs.pop("kind")
+def sort(da, dim, kind=None, stable=None, **kwargs):
+    """Sort along dimension using DataArray values.
+
+    Wrapper around :func:`numpy.sort`
+
+    The returned DataArray has the same shape and dimensions as the original one
+    but the coordinate values along `dim` no longer make sense given each subset
+    along the other dimensions can have a different order along `dim` so they are removed.
+
+    Parameters
+    ----------
+    da : DataArray
+        Input data
+    dim : hashable
+        Dimension along which to sort using dataarray values, not coordinates.
+    kind : str, optional
+    stable : bool, optional
+    **kwargs
+        Passed to :func:`xarray.apply_ufunc`
+
+    Returns
+    -------
+    DataArray
+    """
+    sort_kwargs = {"axis": -1, "kind": kind, "stable": stable}
     return xr.apply_ufunc(
         np.sort,
         da,
@@ -34,7 +54,7 @@ def sort(da, dim, **kwargs):
         output_core_dims=[[dim]],
         kwargs=sort_kwargs,
         **kwargs,
-    )
+    ).drop_vars(dim, errors="ignore")
 
 
 def _remove_indexes_to_reduce(da, dims):
@@ -88,10 +108,10 @@ def zeros_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of DataArray or Dataset
+    *args : iterable of (DataArray or Dataset)
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
-    dims : list of hashable
+    dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
         {class}`~xarray.DataArray` constructor.
     dtype : dtype, optional
@@ -118,10 +138,10 @@ def empty_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of DataArray or Dataset
+    *args : iterable of (DataArray or Dataset)
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
-    dims : list of hashable
+    dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
         {class}`~xarray.DataArray` constructor.
     dtype : dtype, optional
@@ -148,10 +168,10 @@ def ones_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of DataArray or Dataset
+    *args : iterable of (DataArray or Dataset)
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
-    dims : list of hashable
+    dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
         {class}`~xarray.DataArray` constructor.
     dtype : dtype, optional

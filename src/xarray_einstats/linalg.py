@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """Wrappers for :mod:`numpy.linalg`.
 
 .. tip::
@@ -10,8 +11,6 @@
     ``matmul`` and ``get_default_dims``.
 
 """
-
-import warnings
 
 import numpy as np
 import xarray as xr
@@ -168,7 +167,7 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
 
     Parameters
     ----------
-    dims : list of list of str
+    dims : list[list[str]]
         List of lists of dimension names. It must have the same length or be
         only one item longer than ``operands``. If both have the same
         length, the generated pattern passed to {func}`numpy.einsum`
@@ -178,7 +177,7 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
         subscripts.
     operands : DataArray
         DataArrays for the operation. Multiple DataArrays are accepted.
-    keep_dims : set, optional
+    keep_dims : set of hashable, optional
         Dimensions to exclude from summation unless specifically specified in ``dims``
 
     See Also
@@ -268,13 +267,13 @@ def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs)
 
     Parameters
     ----------
-    dims : list of list of str
+    dims : list[list[str]]
     operands : DataArray
     optimize : str, optional
         ``optimize`` argument for :func:`numpy.einsum_path`. It defaults to None so that
         we always default to numpy's default, without needing to keep the call signature
         here up to date.
-    kwargs : dict, optional
+    **kwargs
         Passed to :func:`xarray.apply_ufunc`
     """
     if isinstance(dims, str):
@@ -310,18 +309,6 @@ def _einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwa
     )
 
 
-def raw_einsum(*args, **kwargs):
-    """Wrap numpy.einsum.
-
-    DEPRECATED
-    """
-    warnings.warn(
-        "`raw_einsum` has been deprecated. Its functionality has been merged into `einsum`",
-        DeprecationWarning,
-    )
-    return einsum(*args, **kwargs)
-
-
 def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
     """Expose :func:`numpy.einsum` with an xarray-like API.
 
@@ -330,7 +317,7 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
 
     Parameters
     ----------
-    dims : str or list of list of str
+    dims : str or list[list[str]]
         If `dims` is a string it is intepreted as the subscripts for the summation as dimension
         names. Spaces indicate multiple dimensions in a DataArray and commas indicate
         multiple DataArray operands.
@@ -343,9 +330,9 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
         item is assumed to be the dimension specification of the output
         DataArray. In this case it can be an empty list to add ``->`` but no
         subscripts.
-    operands : DataArray
+    *operands : DataArray
         DataArrays for the operation. Multiple DataArrays are accepted.
-    keep_dims : set, optional
+    keep_dims : set of hashable, optional
         Dimensions to exclude from summation unless specifically specified in ``dims``
     out_append : str, optional
         Pattern to append to repeated dimension names in the output (if any). The pattern should
@@ -357,8 +344,12 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
         It will therefore inherit the coordinate values in case there were any.
     einsum_kwargs : dict, optional
         Passed to :func:`numpy.einsum`
-    kwargs : dict, optional
+    **kwargs
         Passed to :func:`xarray.apply_ufunc`
+
+    Returns
+    -------
+    DataArray
 
     Notes
     -----
@@ -382,6 +373,17 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
 
     Usage examples of all arguments is available at the
     :ref:`matmul section <linalg_tutorial/matmul>` of the linear algebra module tutorial.
+
+    Parameters
+    ----------
+    da, db : DataArray
+    dims : sequence of hashable
+    out_append : str, default "2"
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     rename = False
     if dims is None:
@@ -451,7 +453,7 @@ def matrix_transpose(da, dims):
         The DataArray after transposing the matrix data but leaving the dimensions untouched.
     """
     if dims is None:
-        dims = _attempt_default_dims("matrix_power", da.dims)
+        dims = _attempt_default_dims("matrix_transpose", da.dims)
     dim1, dim2 = dims
     return da.swap_dims({dim1: dim2, dim2: dim1}).transpose(..., *dims)
 
@@ -460,6 +462,17 @@ def matrix_power(da, n, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.matrix_power`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    n : int
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("matrix_power", da.dims)
@@ -472,6 +485,16 @@ def cholesky(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.cholesky`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("cholesky", da.dims)
@@ -484,6 +507,18 @@ def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: n
     """Wrap :func:`numpy.linalg.qr`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    mode : str, optional
+    out_append : str, optional
+    **kwargs
+
+    Returns
+    -------
+    tuple of (DataArray, DataArray) or DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("qr", da.dims)
@@ -521,6 +556,20 @@ def svd(
     """Wrap :func:`numpy.linalg.svd`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    full_matrices : bool, default True
+    compute_ub : bool, default True
+    hermitian : bool, default False
+    out_append : str, default "2"
+    **kwargs
+
+    Returns
+    -------
+    tuple of (DataArray, DataArray, DataArray) or DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("svd", da.dims)
@@ -556,6 +605,17 @@ def eig(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.eig`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    eigenvalues : DataArray
+    eigenvectors : DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("eig", da.dims)
@@ -568,6 +628,17 @@ def eigh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.eigh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    eigenvalues : DataArray
+    eigenvectors : DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("eigh", da.dims)
@@ -585,6 +656,16 @@ def eigvals(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.eigvals`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("eigvals", da.dims)
@@ -597,6 +678,16 @@ def eigvalsh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-n
     """Wrap :func:`numpy.linalg.eigvalsh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("eigvalsh", da.dims)
@@ -614,6 +705,17 @@ def norm(da, dims=None, *, ord=None, **kwargs):  # pylint: disable=redefined-bui
     """Wrap :func:`numpy.linalg.norm`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    ord : scalar or {"fro", "nuc"}, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("norm", da.dims)
@@ -633,6 +735,17 @@ def cond(da, dims=None, *, p=None, **kwargs):  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.cond`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    p : int or {np.inf, "fro"}, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("cond", da.dims)
@@ -643,24 +756,57 @@ def det(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.det`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("det", da.dims)
     return xr.apply_ufunc(np.linalg.det, da, input_core_dims=[dims], **kwargs)
 
 
-def matrix_rank(da, dims=None, *, tol=None, hermitian=False, **kwargs):
+def matrix_rank(da, dims=None, *, tol=None, rtol=None, hermitian=False, **kwargs):
     """Wrap :func:`numpy.linalg.matrix_rank`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    tol, rtol : float or DataArray, optional
+    hermitian : bool, default False
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("matrix_rank", da.dims)
+    if tol is not None and rtol is not None:
+        raise ValueError("tol and rtol can't be used at the same time")
+    mr_kwargs = {"hermitian": hermitian}
+    if tol is not None:
+        if isinstance(tol, xr.DataArray):
+            da, tol = xr.broadcast(da, tol, exclude=set(dims))
+        mr_kwargs["tol"] = tol
+    if rtol is not None:
+        if isinstance(rtol, xr.DataArray):
+            da, rtol = xr.broadcast(da, rtol, exclude=set(dims))
+        mr_kwargs["rtol"] = rtol
     return xr.apply_ufunc(
         np.linalg.matrix_rank,
         da,
         input_core_dims=[dims],
-        kwargs={"tol": tol, "hermitian": hermitian},
+        kwargs=mr_kwargs,
         **kwargs,
     )
 
@@ -669,6 +815,17 @@ def slogdet(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.slogdet`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    sign : DataArray
+    logabsdet : DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("slogdet", da.dims)
@@ -681,6 +838,18 @@ def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
     """Wrap :func:`numpy.trace`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    offset : int, default 0
+    dtype : dtype, optional
+    out : ndarray, optional
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("trace", da.dims)
@@ -692,6 +861,17 @@ def diagonal(da, dims=None, *, offset=0, **kwargs):
     """Wrap :func:`numpy.diagonal`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    offset : int, default 0
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("diagonal", da.dims)
@@ -714,8 +894,7 @@ def solve(da, db, dims=None, **kwargs):
 
     Parameters
     ----------
-    da : DataArray
-    db : DataArray
+    da, db : DataArray
     dims : sequence of hashable, optional
         It can have either length 2 or 3. If length 2, both dimensions should have the
         same length and be present in `da`, and only one of them should also be present in `db`.
@@ -726,8 +905,12 @@ def solve(da, db, dims=None, **kwargs):
         Here, b can be ``(..., M)`` this case is not limited to 1d, so dims with length two
         indicates the two dimensions of length M, with length 3 it is something like (M, M, K),
         which can be done thanks to named dimensions.
-    **kwargs : mapping
+    **kwargs
         Passed to :func:`xarray.apply_ufunc`
+
+    Returns
+    -------
+    DataArray
 
     Examples
     --------
@@ -786,6 +969,16 @@ def inv(da, dims=None, **kwargs):
     """Wrap :func:`numpy.linalg.inv`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("inv", da.dims)
@@ -794,21 +987,49 @@ def inv(da, dims=None, **kwargs):
     )
 
 
-def pinv(da, dims=None, **kwargs):
+def pinv(da, dims=None, *, rcond=None, rtol=None, hermitian=False, **kwargs):
     """Wrap :func:`numpy.linalg.pinv`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
-    If both "rtol" and "rcond" are provided, "rtol" will be ignored.
+
+    Parameters
+    ----------
+    da : DataArray
+    dims : sequence of hashable, optional
+    rcond, rtol : float or DataArray, optional
+        Equivalent arguments, `rcond` is older and kept for backward compatibility,
+        `rtol` is newer for array-api compatibility. Both can be set at the same time.
+    hermitian : bool, default False
+    **kwargs
+
+    Returns
+    -------
+    DataArray
     """
     if dims is None:
         dims = _attempt_default_dims("pinv", da.dims)
-    rcond = kwargs.pop("rtol", None)
-    rcond = kwargs.pop("rcond", rcond)
+    if rcond is not None and rtol is not None:
+        raise ValueError("rcond and rtol can't be used at the same time")
+    pinv_kwargs = {"hermitian": hermitian}
+    if rcond is not None:
+        if isinstance(rcond, xr.DataArray):
+            da, rcond = xr.broadcast(da, rcond, exclude=set(dims))
+        pinv_kwargs["rcond"] = rcond
+    if rtol is not None:
+        if isinstance(rtol, xr.DataArray):
+            da, rtol = xr.broadcast(da, rtol, exclude=set(dims))
+        pinv_kwargs["rtol"] = rtol
+    print(da)
+    print("\n")
+    print(rcond)
+    print("\n")
+    print(rtol)
+    print("------------------------\n")
     return xr.apply_ufunc(
         np.linalg.pinv,
         da,
-        rcond,
-        input_core_dims=[dims, []],
+        input_core_dims=[dims],
         output_core_dims=[dims[::-1]],
+        kwargs=pinv_kwargs,
         **kwargs,
     )
