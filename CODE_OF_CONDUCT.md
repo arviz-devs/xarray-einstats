@@ -34,17 +34,17 @@ If you have experienced or witnessed behavior that violates this
 Code of Conduct, please complete the form below to
 make a report.
 
-**REPORTING FORM:** https://numfocus.typeform.com/to/ynjGdT
+**REPORTING FORM:** [https://numfocus.typeform.com/to/ynjGdT](https://numfocus.typeform.com/to/ynjGdT)
 
 Reports are sent to the NumFOCUS Code of Conduct Enforcement Team
 (see below).
 
 You can view the Privacy Policy and Terms of Service for TypeForm here.
-The NumFOCUS Privacy Policy is here:
-https://www.numfocus.org/privacy-policy
+The NumFOCUS Privacy Policy is here: 
+[https://www.numfocus.org/privacy-policy](https://www.numfocus.org/privacy-policy)
 
 
 # Full Code of Conduct
 The full text of the NumFOCUS/xarray-einstats Code of Conduct can be found on
 NumFOCUS's website  
-https://numfocus.org/code-of-conduct
+[https://numfocus.org/code-of-conduct](https://numfocus.org/code-of-conduct)
