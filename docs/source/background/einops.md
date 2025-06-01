@@ -11,7 +11,9 @@ Why change the notation? There are three main reasons, each concerning one
 of the elements respectively: `->`, space as delimiter and parenthesis:
 * In xarray dimensions are already labeled. In many cases, the left
   side in the einops notation is only used to label the dimensions.
-  In fact, 5/7 examples in https://einops.rocks/api/rearrange/ fall in this category.
+  In fact, 5/7 examples in
+  [https://einops.rocks/api/rearrange/](https://einops.rocks/api/rearrange/)
+  fall in this category.
   This is not necessary when working with xarray objects.
 * In xarray dimension names can be any {term}`hashable <xarray:name>`.
 * In xarray dimensions are labeled and the order doesn't matter.
