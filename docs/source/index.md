@@ -150,7 +150,7 @@ How-to guides <contributing/how_to>
 :caption: About
 :hidden:
 
-Twitter <https://twitter.com/arviz_devs>
+BlueSky <https://bsky.app/profile/arviz.bsky.social>
 Mastodon <https://bayes.club/@ArviZ>
 GitHub repository <https://github.com/arviz-devs/xarray-einstats>
 ```
