@@ -126,6 +126,19 @@ class TestRvWrappers:
         assert_dims_in_da(out, dim_names)
         assert len(out[dim_names[0]]) == 2
         assert len(out[dim_names[1]]) == 7
+        assert all(np.all(out.coords[name] == coords) for name, coords in data.coords.items())
+
+    @pytest.mark.parametrize("in_type", ("scalar", "dataarray"))
+    def test_rv_method_coords(self, data, wrapper, in_type):
+        dist = get_dist_and_clean_method(wrapper, data, in_type=in_type)
+        coords = {"new_dim": ["true", "false"], "extra_dim": list("abcdefg")}
+        out = dist.rvs(coords=coords)
+        assert_dims_in_da(out, list(coords))
+        assert len(out["new_dim"]) == 2
+        assert len(out["extra_dim"]) == 7
+        assert np.all(out.coords["new_dim"] == np.array(coords["new_dim"]))
+        assert np.all(out.coords["extra_dim"] == np.array(coords["extra_dim"]))
+        assert all(np.all(out.coords[name] == coord) for name, coord in data.coords.items())
 
     @pytest.mark.parametrize("size", (1, 10))
     @pytest.mark.parametrize("dims", (None, "name", ["name"]))
