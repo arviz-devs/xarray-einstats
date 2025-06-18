@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.9.1 (2025 June 18)
+### Maintenance and fixes
+* Ensure coords are preserved in `.rvs` method of RV wrappers {pull}`73`
+
 ## v0.9.0 (2025 May 22)
 ### New features
 * Support PreliZ distributions as input to RV wrappers {pull}`70`
