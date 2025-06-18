@@ -258,15 +258,15 @@ class XrRV:
             output_core_dims=[output_core_dims],
             **apply_kwargs,
         )
-        if not isinstance(out, xr.DataArray):
-            for elem in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
-                if isinstance(elem, xr.DataArray):
-                    for name, values in elem.coords.items():
-                        if name in coords:
-                            continue
-                        if set(values.dims) < set(output_core_dims):
-                            coords[name] = values
+        for elem in (*dist_args, *args, *dist_kwargs.values(), *kwargs.values()):
+            if isinstance(elem, xr.DataArray):
+                for name, values in elem.coords.items():
+                    if name in coords:
+                        continue
+                    if set(values.dims) < set(output_core_dims):
+                        coords[name] = values
 
+        if not isinstance(out, xr.DataArray):
             return xr.DataArray(out, dims=output_core_dims, coords=coords)
         return out.assign_coords(coords)
 
