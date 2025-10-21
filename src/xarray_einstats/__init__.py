@@ -113,7 +113,7 @@ def zeros_ref(*args, dims, dtype=None):
         of the given `dims` will be taken.
     dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
-        {class}`~xarray.DataArray` constructor.
+        :class:`~xarray.DataArray` constructor.
     dtype : dtype, optional
         The dtype of the output array.
         If it is not provided it will be inferred from the reference
@@ -143,7 +143,7 @@ def empty_ref(*args, dims, dtype=None):
         of the given `dims` will be taken.
     dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
-        {class}`~xarray.DataArray` constructor.
+        :class:`~xarray.DataArray` constructor.
     dtype : dtype, optional
         The dtype of the output array.
         If it is not provided it will be inferred from the reference
@@ -173,7 +173,7 @@ def ones_ref(*args, dims, dtype=None):
         of the given `dims` will be taken.
     dims : sequence of hashable
         List of dimensions of the output DataArray. Passed as is to the
-        {class}`~xarray.DataArray` constructor.
+        :class:`~xarray.DataArray` constructor.
     dtype : dtype, optional
         The dtype of the output array.
         If it is not provided it will be inferred from the reference
