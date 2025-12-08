@@ -106,7 +106,7 @@ def _asdataarray(x_or_q, dim_name):
         return xr.DataArray(x_or_q_ary, dims=[dim_name], coords={dim_name: np.asarray(x_or_q)})
     raise ValueError(
         "To evaluate distribution methods on data with >=2 dims,"
-        " the input needs to be a xarray.DataArray"
+        " the input needs to be an xarray.DataArray"
     )
 
 
