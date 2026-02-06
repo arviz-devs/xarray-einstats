@@ -1019,12 +1019,7 @@ def pinv(da, dims=None, *, rcond=None, rtol=None, hermitian=False, **kwargs):
         if isinstance(rtol, xr.DataArray):
             da, rtol = xr.broadcast(da, rtol, exclude=set(dims))
         pinv_kwargs["rtol"] = rtol
-    print(da)
-    print("\n")
-    print(rcond)
-    print("\n")
-    print(rtol)
-    print("------------------------\n")
+    
     return xr.apply_ufunc(
         np.linalg.pinv,
         da,
