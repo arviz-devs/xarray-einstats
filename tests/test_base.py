@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name, no-self-use
 """Test top level functions."""
+
 import numpy as np
 import pytest
 

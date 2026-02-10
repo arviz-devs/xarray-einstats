@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name, no-self-use, too-many-public-methods
 """Test the linalg module."""
+
 import numpy as np
 import packaging
 import pytest
