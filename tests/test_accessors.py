@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name, no-self-use
 """Test the accessors."""
+
 from importlib.util import find_spec
 
 import numpy as np

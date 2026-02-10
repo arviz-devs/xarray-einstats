@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name, no-self-use, too-many-positional-arguments
 """Test the stats module."""
+
 import warnings
 
 import numpy as np
