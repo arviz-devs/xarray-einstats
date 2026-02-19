@@ -1,11 +1,9 @@
 # Change Log
 
-## v0.x.x (Unreleased)
-### New features
-
+## v0.10.0 (2025 Feb 19)
 ### Maintenance and fixes
-
-### Documentation
+* Remove leftover print in `pinv` {pull}`87`
+* Update minimum dependency versions {pull}`88`
 
 ## v0.9.1 (2025 June 18)
 ### Maintenance and fixes

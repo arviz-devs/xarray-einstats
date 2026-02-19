@@ -1,7 +1,6 @@
 # File generated with docstub
 
-import warnings
-from collections.abc import Callable, Hashable
+from collections.abc import Hashable
 
 import einops
 import xarray
@@ -12,9 +11,9 @@ __all__ = ["rearrange", "reduce", "DaskBackend"]
 
 class DimHandler:
     def __init__(self) -> None: ...
-    def get_name(self, dim) -> None: ...
-    def get_names(self, dim_list) -> None: ...
-    def rename_kwarg(self, key) -> None: ...
+    def get_name(self, dim: Incomplete) -> None: ...
+    def get_names(self, dim_list: Incomplete) -> None: ...
+    def rename_kwarg(self, key: Incomplete) -> None: ...
 
 def process_pattern_list(
     redims: list[Hashable | list | dict],
@@ -25,7 +24,7 @@ def process_pattern_list(
 def translate_pattern(pattern: str) -> list[Hashable | list | dict]: ...
 def _rearrange(
     da: xarray.DataArray,
-    out_dims: list[str, list | dict],
+    out_dims: list[str | list | dict],
     in_dims: list[str | dict] | None = ...,
     dim_lengths: dict | None = ...,
 ) -> None: ...
@@ -38,7 +37,7 @@ def rearrange(
 ) -> xarray.DataArray: ...
 def _reduce(
     da: xarray.DataArray,
-    reduction: str | Callable,
+    reduction: str | callable,
     out_dims: list[str | list | dict],
     in_dims: list[str | dict] | None = ...,
     dim_lengths: dict[Hashable, int] | None = ...,
@@ -46,7 +45,7 @@ def _reduce(
 def reduce(
     da: xarray.DataArray,
     pattern: str | list[str | list | dict],
-    reduction: str | Callable,
+    reduction: str | callable,
     pattern_in: list[str | dict] | None = ...,
     dim_lengths: dict[Hashable, int] | None = ...,
     **dim_lengths_kwargs: int,
@@ -57,7 +56,7 @@ class DaskBackend(einops._backends.AbstractBackend):
     framework_name: Incomplete
 
     def __init__(self) -> None: ...
-    def is_appropriate_type(self, tensor) -> None: ...
+    def is_appropriate_type(self, tensor: Incomplete) -> None: ...
     def from_numpy(self, x: Incomplete) -> None: ...
     def to_numpy(self, x: Incomplete) -> None: ...
     def arange(self, start: Incomplete, stop: Incomplete) -> None: ...

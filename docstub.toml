@@ -1,11 +1,12 @@
-[tool.docstub.known_imports]
-xarray = {import = "xarray"}
-numbers = {import = "numbers"}
+[tool.docstub.type_prefixes]
+numbers = "numbers"
+xarray = "xarray"
 
 # Specify human-friendly aliases that can be used instead of Python-parsable
 # annotations.
-# TODO rename to qualname_alias or something
-[tool.docstub.replace_doctypes]
+[tool.docstub.type_nicknames]
+sequence = "Sequence"
+iterable = "Iterable"
 hashable = "Hashable"
 iterator = "Iterator"
 scalar = "numbers.Number"

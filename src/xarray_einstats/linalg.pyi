@@ -1,7 +1,6 @@
 # File generated with docstub
 
 import numbers
-import warnings
 from collections.abc import Hashable, Sequence
 from typing import Literal
 
@@ -36,8 +35,10 @@ __all__ = [
 class MissingMonkeypatchError(Exception):
     pass
 
-def get_default_dims(da1_dims: list[str], d2_dims=...) -> list[str]: ...
-def _attempt_default_dims(func, da1_dims, da2_dims=...) -> None: ...
+def get_default_dims(da1_dims: list[str], d2_dims: Incomplete = ...) -> list[str]: ...
+def _attempt_default_dims(
+    func: Incomplete, da1_dims: Incomplete, da2_dims: Incomplete = ...
+) -> None: ...
 
 class PairHandler:
     def __init__(self, all_dims: Incomplete, keep_dims: Incomplete) -> None: ...
@@ -45,24 +46,35 @@ class PairHandler:
     def get_out_subscript(self) -> None: ...
 
 def _einsum_parent(
-    dims: list[list[str]], *operands: xarray.DataArray, keep_dims: set = ...
+    dims: list[list[str]], *operands: xarray.DataArray, keep_dims: set[Hashable] = ...
 ) -> None: ...
-def _translate_pattern_string(subscripts) -> None: ...
-def _einsum_path(dims, *operands, keep_dims=..., optimize=..., **kwargs) -> None: ...
+def _translate_pattern_string(subscripts: Incomplete) -> None: ...
+def _einsum_path(
+    dims: Incomplete,
+    *operands: Incomplete,
+    keep_dims: Incomplete = ...,
+    optimize: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
 def einsum_path(
     dims: list[list[str]],
     *operands: xarray.DataArray,
-    keep_dims=...,
+    keep_dims: Incomplete = ...,
     optimize: str | None = ...,
-    **kwargs: dict,
+    **kwargs: Incomplete,
 ) -> None: ...
 def _einsum(
-    dims, *operands, keep_dims=..., out_append=..., einsum_kwargs=..., **kwargs
+    dims: Incomplete,
+    *operands: Incomplete,
+    keep_dims: Incomplete = ...,
+    out_append: Incomplete = ...,
+    einsum_kwargs: Incomplete = ...,
+    **kwargs: Incomplete,
 ) -> None: ...
 def einsum(
     dims: str | list[list[str]],
     *operands: xarray.DataArray,
-    keep_dims: set = ...,
+    keep_dims: set[Hashable] = ...,
     out_append: str = ...,
     einsum_kwargs: dict | None = ...,
     **kwargs: Incomplete,
@@ -95,7 +107,7 @@ def svd(
     dims: Sequence[Hashable] | None = ...,
     *,
     full_matrices: bool = ...,
-    compute_uv=...,
+    compute_uv: Incomplete = ...,
     hermitian: bool = ...,
     out_append: str = ...,
     **kwargs: Incomplete,
@@ -104,13 +116,21 @@ def eig(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
 ) -> tuple[xarray.DataArray, xarray.DataArray]: ...
 def eigh(
-    da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., *, UPLO=..., **kwargs: Incomplete
+    da: xarray.DataArray,
+    dims: Sequence[Hashable] | None = ...,
+    *,
+    UPLO: Incomplete = ...,
+    **kwargs: Incomplete,
 ) -> tuple[xarray.DataArray, xarray.DataArray]: ...
 def eigvals(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
 ) -> xarray.DataArray: ...
 def eigvalsh(
-    da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., *, UPLO=..., **kwargs: Incomplete
+    da: xarray.DataArray,
+    dims: Sequence[Hashable] | None = ...,
+    *,
+    UPLO: Incomplete = ...,
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def norm(
     da: xarray.DataArray,
@@ -148,7 +168,7 @@ def trace(
     offset: int = ...,
     dtype: np.typing.DTypeLike | None = ...,
     out: NDArray | None = ...,
-    **kwargs,
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def diagonal(
     da: xarray.DataArray,
