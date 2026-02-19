@@ -19,7 +19,7 @@ __all__ = [
     "EinopsAccessor",
 ]
 
-__version__ = "0.10.0.dev0"
+__version__ = "0.10.0"
 
 
 def sort(da, dim, kind=None, stable=None, **kwargs):

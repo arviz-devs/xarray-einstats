@@ -29,21 +29,23 @@ __all__ = [
 _SCIPY_RV_MAP: Incomplete
 
 def get_default_dims(dims: list[str]) -> list[str]: ...
-def _asdataarray(x_or_q, dim_name) -> None: ...
+def _asdataarray(x_or_q: Incomplete, dim_name: Incomplete) -> None: ...
 def _wrap_method(method: Incomplete) -> None: ...
 
 class XrRV:
-    def __init__(self, dist, *args, **kwargs) -> None: ...
-    def _broadcast_args(self, args, kwargs) -> None: ...
+    def __init__(
+        self, dist: Incomplete, *args: Incomplete, **kwargs: Incomplete
+    ) -> None: ...
+    def _broadcast_args(self, args: Incomplete, kwargs: Incomplete) -> None: ...
     def rvs(
         self,
-        *args,
-        size=...,
-        random_state=...,
-        dims=...,
-        coords=...,
-        apply_kwargs=...,
-        **kwargs,
+        *args: Incomplete,
+        size: Incomplete = ...,
+        random_state: Incomplete = ...,
+        dims: Incomplete = ...,
+        coords: Incomplete = ...,
+        apply_kwargs: Incomplete = ...,
+        **kwargs: Incomplete,
     ) -> None: ...
 
 class XrContinuousRV(XrRV):
@@ -52,22 +54,62 @@ class XrContinuousRV(XrRV):
 class XrDiscreteRV(XrRV):
     pass
 
-def _add_documented_method(cls, wrapped_cls, methods, extra_docs=...) -> None: ...
+def _add_documented_method(
+    cls: Incomplete,
+    wrapped_cls: Incomplete,
+    methods: Incomplete,
+    extra_docs: Incomplete = ...,
+) -> None: ...
 
 doc_extras: Incomplete
 base_methods: Incomplete
 
 class multivariate_normal:
-    def __init__(self, mean=..., cov=..., dims=...) -> None: ...
-    def _process_inputs(self, mean: Incomplete, cov: Incomplete, dims: Incomplete) -> None: ...
-    def rvs(
-        self, mean=..., cov=..., dims=..., *, size=..., rv_dims=..., random_state=...
+    def __init__(
+        self, mean: Incomplete = ..., cov: Incomplete = ..., dims: Incomplete = ...
     ) -> None: ...
-    def logpdf(self, x, mean=..., cov=..., dims=...) -> None: ...
-    def pdf(self, x, mean=..., cov=..., dims=...) -> None: ...
+    def _process_inputs(
+        self, mean: Incomplete, cov: Incomplete, dims: Incomplete
+    ) -> None: ...
+    def rvs(
+        self,
+        mean: Incomplete = ...,
+        cov: Incomplete = ...,
+        dims: Incomplete = ...,
+        *,
+        size: Incomplete = ...,
+        rv_dims: Incomplete = ...,
+        random_state: Incomplete = ...,
+    ) -> None: ...
+    def logpdf(
+        self,
+        x: Incomplete,
+        mean: Incomplete = ...,
+        cov: Incomplete = ...,
+        dims: Incomplete = ...,
+    ) -> None: ...
+    def pdf(
+        self,
+        x: Incomplete,
+        mean: Incomplete = ...,
+        cov: Incomplete = ...,
+        dims: Incomplete = ...,
+    ) -> None: ...
 
-def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=...) -> None: ...
-def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=...) -> None: ...
+def _apply_nonreduce_func(
+    func: Incomplete,
+    da: Incomplete,
+    dims: Incomplete,
+    kwargs: Incomplete,
+    func_kwargs: Incomplete = ...,
+) -> None: ...
+def _apply_reduce_func(
+    func: Incomplete,
+    da: Incomplete,
+    dims: Incomplete,
+    kwargs: Incomplete,
+    func_kwargs: Incomplete = ...,
+) -> None: ...
 def rankdata(
     da: xarray.DataArray,
     dims: Hashable | Sequence[Hashable] | None = ...,
@@ -75,14 +117,79 @@ def rankdata(
     method: str | None = ...,
     **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
-def gmean(da, dims=..., dtype=..., *, weights=..., **kwargs) -> None: ...
-def hmean(da, dims=..., *, dtype=..., **kwargs) -> None: ...
-def circmean(da, dims=..., *, high=..., low=..., nan_policy=..., **kwargs) -> None: ...
-def circvar(da, dims=..., *, high=..., low=..., nan_policy=..., **kwargs) -> None: ...
-def circstd(da, dims=..., *, high=..., low=..., nan_policy=..., **kwargs) -> None: ...
-def kurtosis(da, dims=..., *, fisher=..., bias=..., nan_policy=..., **kwargs) -> None: ...
-def skew(da, dims=..., *, bias=..., nan_policy=..., **kwargs) -> None: ...
-def logsumexp(da, dims=..., *, b=..., return_sign=..., **kwargs) -> None: ...
+def gmean(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    dtype: Incomplete = ...,
+    *,
+    weights: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def hmean(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    dtype: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def circmean(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    high: Incomplete = ...,
+    low: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def circvar(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    high: Incomplete = ...,
+    low: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def circstd(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    high: Incomplete = ...,
+    low: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def kurtosis(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    fisher: Incomplete = ...,
+    bias: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def skew(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    bias: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
+def logsumexp(
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    b: Incomplete = ...,
+    return_sign: Incomplete = ...,
+    **kwargs: Incomplete,
+) -> None: ...
 def median_abs_deviation(
-    da, dims=..., *, center=..., scale=..., nan_policy=..., **kwargs
+    da: Incomplete,
+    dims: Incomplete = ...,
+    *,
+    center: Incomplete = ...,
+    scale: Incomplete = ...,
+    nan_policy: Incomplete = ...,
+    **kwargs: Incomplete,
 ) -> None: ...

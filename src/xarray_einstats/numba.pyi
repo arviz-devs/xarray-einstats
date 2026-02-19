@@ -13,25 +13,25 @@ from . import _remove_indexes_to_reduce, sort
 
 __all__ = ["histogram", "searchsorted", "ecdf"]
 
-def hist_ufunc(data, bin_edges, res) -> None: ...
+def hist_ufunc(data: Incomplete, bin_edges: Incomplete, res: Incomplete) -> None: ...
 def histogram(
     da: xarray.DataArray,
     dims: Hashable | Sequence[Hashable],
     bins: ArrayLike | None = ...,
     density: bool = ...,
-    **kwargs: Incomplete,
+    **kwargs: Incomplete
 ) -> xarray.DataArray: ...
-def searchsorted_ufunc(da, v, res) -> None: ...
+def searchsorted_ufunc(da: Incomplete, v: Incomplete, res: Incomplete) -> None: ...
 def searchsorted(
     da: xarray.DataArray,
     v: xarray.DataArray,
     dims: Hashable | Sequence[Hashable] | None = ...,
-    **kwargs: Incomplete,
+    **kwargs: Incomplete
 ) -> None: ...
 def ecdf(
     da: xarray.DataArray,
     dims: Hashable | Sequence[Hashable] | None = ...,
     *,
     npoints: int | None = ...,
-    **kwargs: Incomplete,
+    **kwargs: Incomplete
 ) -> xarray.DataArray: ...
