@@ -54,14 +54,14 @@ def _einsum_path(
     *operands: Incomplete,
     keep_dims: Incomplete = ...,
     optimize: Incomplete = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> None: ...
 def einsum_path(
     dims: list[list[str]],
     *operands: xarray.DataArray,
     keep_dims: Incomplete = ...,
     optimize: str | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> None: ...
 def _einsum(
     dims: Incomplete,
@@ -69,7 +69,7 @@ def _einsum(
     keep_dims: Incomplete = ...,
     out_append: Incomplete = ...,
     einsum_kwargs: Incomplete = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> None: ...
 def einsum(
     dims: str | list[list[str]],
@@ -77,7 +77,7 @@ def einsum(
     keep_dims: set[Hashable] = ...,
     out_append: str = ...,
     einsum_kwargs: dict | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def matmul(
     da: xarray.DataArray,
@@ -85,14 +85,11 @@ def matmul(
     dims: Sequence[Hashable] | None = ...,
     *,
     out_append: str = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def matrix_transpose(da: xarray.DataArray, dims: list[str]) -> xarray.DataArray: ...
 def matrix_power(
-    da: xarray.DataArray,
-    n: int,
-    dims: Sequence[Hashable] | None = ...,
-    **kwargs: Incomplete
+    da: xarray.DataArray, n: int, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
 ) -> xarray.DataArray: ...
 def cholesky(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -103,7 +100,7 @@ def qr(
     *,
     mode: str = ...,
     out_append: str = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> tuple[xarray.DataArray, xarray.DataArray] | xarray.DataArray: ...
 def svd(
     da: xarray.DataArray,
@@ -113,7 +110,7 @@ def svd(
     compute_uv: Incomplete = ...,
     hermitian: bool = ...,
     out_append: str = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> tuple[xarray.DataArray, xarray.DataArray, xarray.DataArray] | xarray.DataArray: ...
 def eig(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -123,7 +120,7 @@ def eigh(
     dims: Sequence[Hashable] | None = ...,
     *,
     UPLO: Incomplete = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> tuple[xarray.DataArray, xarray.DataArray]: ...
 def eigvals(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -133,21 +130,21 @@ def eigvalsh(
     dims: Sequence[Hashable] | None = ...,
     *,
     UPLO: Incomplete = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def norm(
     da: xarray.DataArray,
     dims: Sequence[Hashable] | None = ...,
     *,
     ord: numbers.Number | Literal["fro", "nuc"] | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def cond(
     da: xarray.DataArray,
     dims: Sequence[Hashable] | None = ...,
     *,
     p: int | Literal[np.inf, "fro"] | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def det(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -159,7 +156,7 @@ def matrix_rank(
     tol: float | xarray.DataArray | None = ...,
     rtol: float | xarray.DataArray | None = ...,
     hermitian: bool = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def slogdet(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -171,20 +168,20 @@ def trace(
     offset: int = ...,
     dtype: np.typing.DTypeLike | None = ...,
     out: NDArray | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def diagonal(
     da: xarray.DataArray,
     dims: Sequence[Hashable] | None = ...,
     *,
     offset: int = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def solve(
     da: xarray.DataArray,
     db: xarray.DataArray,
     dims: Sequence[Hashable] | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def inv(
     da: xarray.DataArray, dims: Sequence[Hashable] | None = ..., **kwargs: Incomplete
@@ -196,5 +193,5 @@ def pinv(
     rcond: float | xarray.DataArray | None = ...,
     rtol: float | xarray.DataArray | None = ...,
     hermitian: bool = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...

@@ -19,19 +19,19 @@ def histogram(
     dims: Hashable | Sequence[Hashable],
     bins: ArrayLike | None = ...,
     density: bool = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...
 def searchsorted_ufunc(da: Incomplete, v: Incomplete, res: Incomplete) -> None: ...
 def searchsorted(
     da: xarray.DataArray,
     v: xarray.DataArray,
     dims: Hashable | Sequence[Hashable] | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> None: ...
 def ecdf(
     da: xarray.DataArray,
     dims: Hashable | Sequence[Hashable] | None = ...,
     *,
     npoints: int | None = ...,
-    **kwargs: Incomplete
+    **kwargs: Incomplete,
 ) -> xarray.DataArray: ...

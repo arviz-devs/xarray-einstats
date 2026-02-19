@@ -33,7 +33,7 @@ def rearrange(
     pattern: str | list[Hashable | list | dict],
     pattern_in: list[Hashable | dict] | None = ...,
     dim_lengths: dict[Hashable, int] | None = ...,
-    **dim_lengths_kwargs: int
+    **dim_lengths_kwargs: int,
 ) -> xarray.DataArray: ...
 def _reduce(
     da: xarray.DataArray,
@@ -48,7 +48,7 @@ def reduce(
     reduction: str | callable,
     pattern_in: list[str | dict] | None = ...,
     dim_lengths: dict[Hashable, int] | None = ...,
-    **dim_lengths_kwargs: int
+    **dim_lengths_kwargs: int,
 ) -> xarray.DataArray: ...
 
 class DaskBackend(einops._backends.AbstractBackend):
