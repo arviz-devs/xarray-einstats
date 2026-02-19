@@ -97,12 +97,18 @@ Get started with xarray-einstats
 :::
 
 ## Similar projects
-Here we list some similar projects we know of. Note that all of
-them are complementary and don't overlap:
+Here we list some similar projects we know of that aim to extend and complement xarray
+in specific computations. Note that all of them are complementary and don't overlap:
+
 * [xr-scipy](https://xr-scipy.readthedocs.io/en/latest/index.html)
 * [xarray-extras](https://xarray-extras.readthedocs.io/en/latest/)
 * [xhistogram](https://xhistogram.readthedocs.io/en/latest/)
 * [xrft](https://xrft.readthedocs.io/en/latest/)
+
+There is also a much more comprehensive list of xarray related projects [on xarray's docs](https://docs.xarray.dev/en/stable/user-guide/ecosystem.html).
+
+In addition, there is an [xtensor module](https://pytensor.readthedocs.io/en/latest/library/xtensor/index.html) in PyTensor,
+a library for tensor/array operations with symbolic computation elements, with similar dimension based syntax.
 
 ## Cite xarray-einstats
 If you use this software, please cite it using the following template and the version
