@@ -192,8 +192,32 @@ def ones_ref(*args, dims, dtype=None):
 
 
 @contextmanager
-def default_linalg_dims(func: callable):
+def default_linalg_dims(func_or_dims: callable | list):
+    """Context manager to temporarily set the default dimensions for linalg functions.
+
+    Safer alternative to monkey patching the `get_default_dims` function in `linalg` module,
+    as it ensures that the original function is restored even if an error occurs within the context.
+
+    Parameters
+    ----------
+    func_or_dims : callable or list
+        If a callable is provided, it should take the same arguments as `get_default_dims`
+        and return the default dimensions based on those arguments.
+        If a list is provided, it will be used as the default dimensions
+        regardless of the input arguments.
+
+    Yields
+    ------
+    None
+    """
+    from xarray_einstats import linalg
+
     original_get_default_dims = linalg.get_default_dims
+
+    def func(*args):
+        if isinstance(func_or_dims, list):
+            return func_or_dims
+        return func_or_dims(*args)
 
     linalg.get_default_dims = func
     try:
