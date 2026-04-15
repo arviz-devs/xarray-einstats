@@ -455,7 +455,16 @@ def matrix_transpose(da, dims):
     if dims is None:
         dims = _attempt_default_dims("matrix_transpose", da.dims)
     dim1, dim2 = dims
-    return da.swap_dims({dim1: dim2, dim2: dim1}).transpose(..., *dims)
+    rename_dict = {dim1: dim2, dim2: dim1}
+
+    for sub_dim1, sub_dim2 in zip(da.indexes[dim1].names, da.indexes[dim2].names):
+        rename_dict[sub_dim1] = sub_dim2
+        rename_dict[sub_dim2] = sub_dim1
+
+    daT = da.rename(rename_dict).transpose(..., *dims)
+
+    # Purely cosmetic change to preserve order of coordinates in the output
+    return daT.assign_coords({k: daT.coords[k] for k in da.coords})
 
 
 def matrix_power(da, n, dims=None, **kwargs):
