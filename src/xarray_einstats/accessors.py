@@ -12,6 +12,7 @@ from .linalg import (
     eigvals,
     eigvalsh,
     inv,
+    pinv,
     matrix_power,
     matrix_rank,
     matrix_transpose,
@@ -119,6 +120,10 @@ class LinAlgAccessor:
     def inv(self, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.inv` on this DataArray."""
         return inv(self._obj, dims=dims, **kwargs)
+
+    def pinv(self, dims=None, **kwargs):
+        """Call :func:`xarray_einstats.linalg.pinv` on this DataArray."""
+        return pinv(self._obj, dims=dims, **kwargs)
 
 
 @xr.register_dataarray_accessor("einops")
