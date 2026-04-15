@@ -457,9 +457,15 @@ def matrix_transpose(da, dims=None):
     dim1, dim2 = dims
     rename_dict = {dim1: dim2, dim2: dim1}
 
-    for sub_dim1, sub_dim2 in zip(da.indexes[dim1].names, da.indexes[dim2].names):
-        rename_dict[sub_dim1] = sub_dim2
-        rename_dict[sub_dim2] = sub_dim1
+    if (
+        dim1 in da.indexes
+        and dim2 in da.indexes
+        and len(da.indexes[dim1].names) == len(da.indexes[dim2].names)
+        and len(da.indexes[dim1].names) > 1
+    ):
+        for sub_dim1, sub_dim2 in zip(da.indexes[dim1].names, da.indexes[dim2].names):
+            rename_dict[sub_dim1] = sub_dim2
+            rename_dict[sub_dim2] = sub_dim1
 
     da_transposed = da.rename(rename_dict).transpose(..., *dims)
 
