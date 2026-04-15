@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Iterable, Sequence
+from contextlib import contextmanager
 from typing import Any, Callable, Generator
 
 import numpy as np
@@ -54,6 +55,7 @@ def ones_ref(
     dims: Sequence[Hashable],
     dtype: np.typing.DTypeLike | None = ...,
 ) -> xarray.DataArray: ...
+@contextmanager
 def default_linalg_dims(
     func_or_dims: Callable | Iterable,
 ) -> Generator[None, Any, None]: ...
