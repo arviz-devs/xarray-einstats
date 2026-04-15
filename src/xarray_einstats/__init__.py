@@ -10,6 +10,7 @@ from .linalg import einsum, einsum_path, matmul
 from .accessors import LinAlgAccessor, EinopsAccessor
 
 __all__ = [
+    "default_linalg_dims",
     "einsum",
     "einsum_path",
     "matmul",
