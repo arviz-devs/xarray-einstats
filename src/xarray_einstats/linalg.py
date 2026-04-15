@@ -434,7 +434,7 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
     return matmul_aux
 
 
-def matrix_transpose(da, dims):
+def matrix_transpose(da, dims=None):
     """Transpose the underlying matrix without modifying the dimensions.
 
     This convenience function uses :meth:`~xarray.DataArray.swap_dims` followed
@@ -444,7 +444,7 @@ def matrix_transpose(da, dims):
     ----------
     da : DataArray
         Input DataArray
-    dims : list of str
+    dims : list of str, optional
         Matrix dimensions
 
     Returns

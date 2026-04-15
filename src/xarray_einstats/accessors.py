@@ -31,7 +31,7 @@ class LinAlgAccessor:
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    def matrix_transpose(self, dims):
+    def matrix_transpose(self, dims=None):
         """Call :func:`xarray_einstats.linalg.matrix_transpose` on this DataArray."""
         return matrix_transpose(self._obj, dims=dims)
 
