@@ -434,17 +434,17 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
     return matmul_aux
 
 
-def matrix_transpose(da, dims):
+def matrix_transpose(da, dims=None):
     """Transpose the underlying matrix without modifying the dimensions.
 
-    This convenience function uses :meth:`~xarray.DataArray.swap_dims` followed
+    This convenience function uses :meth:`~xarray.DataArray.rename` followed
     by :meth:`~xarray.DataArray.transpose` to get the equivalent of a matrix transposition.
 
     Parameters
     ----------
     da : DataArray
         Input DataArray
-    dims : list of str
+    dims : list of str, optional
         Matrix dimensions
 
     Returns
@@ -455,7 +455,22 @@ def matrix_transpose(da, dims):
     if dims is None:
         dims = _attempt_default_dims("matrix_transpose", da.dims)
     dim1, dim2 = dims
-    return da.swap_dims({dim1: dim2, dim2: dim1}).transpose(..., *dims)
+    rename_dict = {dim1: dim2, dim2: dim1}
+
+    if (
+        dim1 in da.indexes
+        and dim2 in da.indexes
+        and len(da.indexes[dim1].names) == len(da.indexes[dim2].names)
+        and len(da.indexes[dim1].names) > 1
+    ):
+        for sub_dim1, sub_dim2 in zip(da.indexes[dim1].names, da.indexes[dim2].names):
+            rename_dict[sub_dim1] = sub_dim2
+            rename_dict[sub_dim2] = sub_dim1
+
+    da_transposed = da.rename(rename_dict).transpose(..., *dims)
+
+    # Purely cosmetic change to preserve order of coordinates in the output
+    return da_transposed.assign_coords({k: da_transposed.coords[k] for k in da.coords})
 
 
 def matrix_power(da, n, dims=None, **kwargs):

@@ -167,6 +167,10 @@ class TestWrappers:
     def test_transpose(self, hermitian):
         assert_equal(hermitian, matrix_transpose(hermitian, dims=("dim", "dim2")))
 
+    def test_transpose_multiindex(self, matrices):
+        stacked = matrices.stack(batch_experiment=("batch", "experiment"), dim_dim2=("dim", "dim2"))
+        matrix_transpose(stacked, dims=("batch_experiment", "dim_dim2"))
+
     def test_matrix_power(self, matrices):
         out = matrix_power(matrices, 2, dims=("dim", "dim2"))
         assert out.shape == matrices.shape
