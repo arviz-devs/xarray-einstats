@@ -13,6 +13,7 @@ from .accessors import EinopsAccessor, LinAlgAccessor
 from .linalg import einsum, einsum_path, matmul
 
 __all__ = [
+    "default_linalg_dims",
     "einsum",
     "einsum_path",
     "matmul",
@@ -52,3 +53,4 @@ def ones_ref(
     dims: Sequence[Hashable],
     dtype: np.typing.DTypeLike | None = ...,
 ) -> xarray.DataArray: ...
+def default_linalg_dims(func_or_dims: callable | list[Unknown]) -> Generator[None, Any, None]: ...
