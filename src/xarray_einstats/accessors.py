@@ -12,6 +12,7 @@ from .linalg import (
     eigvals,
     eigvalsh,
     inv,
+    matmul,
     matrix_power,
     matrix_rank,
     matrix_transpose,
@@ -39,6 +40,10 @@ class LinAlgAccessor:
     def matrix_power(self, n, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.matrix_power` on this DataArray."""
         return matrix_power(self._obj, n, dims=dims, **kwargs)
+
+    def matmul(self, other, dims=None, **kwargs):
+        """Call :func:`xarray_einstats.linalg.matmul` with this DataArray as ``a/da``."""
+        return matmul(self._obj, other, dims=dims, **kwargs)
 
     def cholesky(self, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.cholesky` on this DataArray."""
