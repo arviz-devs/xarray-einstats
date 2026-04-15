@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from contextlib import contextmanager
+from collections.abc import Iterable
 
 import numpy as np
 import xarray as xr
@@ -193,7 +194,7 @@ def ones_ref(*args, dims, dtype=None):
 
 
 @contextmanager
-def default_linalg_dims(func_or_dims: callable | list):
+def default_linalg_dims(func_or_dims):
     """Context manager to temporarily set the default dimensions for linalg functions.
 
     Safer alternative to monkey patching the `get_default_dims` function in `linalg` module,
@@ -201,10 +202,10 @@ def default_linalg_dims(func_or_dims: callable | list):
 
     Parameters
     ----------
-    func_or_dims : callable or list
+    func_or_dims : callable or iterable
         If a callable is provided, it should take the same arguments as `get_default_dims`
         and return the default dimensions based on those arguments.
-        If a list is provided, it will be used as the default dimensions
+        If an iterable is provided, it will be used as the default dimensions
         regardless of the input arguments.
 
     Yields
@@ -216,7 +217,7 @@ def default_linalg_dims(func_or_dims: callable | list):
     original_get_default_dims = linalg.get_default_dims
 
     def func(*args):
-        if isinstance(func_or_dims, list):
+        if isinstance(func_or_dims, Iterable):
             return func_or_dims
         return func_or_dims(*args)
 
