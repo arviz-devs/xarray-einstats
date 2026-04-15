@@ -1,6 +1,7 @@
 """Stats, linear algebra and einops for xarray."""
 
 from __future__ import annotations
+from contextlib import contextmanager
 
 import numpy as np
 import xarray as xr
@@ -188,3 +189,14 @@ def ones_ref(*args, dims, dtype=None):
     empty_ref, zeros_ref
     """
     return _create_ref(*args, dims=dims, np_creator=np.ones, dtype=dtype)
+
+
+@contextmanager
+def default_linalg_dims(func: callable):
+    original_get_default_dims = linalg.get_default_dims
+
+    linalg.get_default_dims = func
+    try:
+        yield
+    finally:
+        linalg.get_default_dims = original_get_default_dims

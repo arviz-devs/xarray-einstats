@@ -12,6 +12,8 @@
 
 """
 
+from contextlib import contextmanager
+
 import numpy as np
 import xarray as xr
 
