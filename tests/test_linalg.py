@@ -169,7 +169,39 @@ class TestWrappers:
 
     def test_transpose_multiindex(self, matrices):
         stacked = matrices.stack(batch_experiment=("batch", "experiment"), dim_dim2=("dim", "dim2"))
-        matrix_transpose(stacked, dims=("batch_experiment", "dim_dim2"))
+        out = matrix_transpose(stacked, dims=("batch_experiment", "dim_dim2"))
+        assert out.sizes["batch_experiment"] == stacked.sizes["dim_dim2"]
+        assert stacked.sizes["batch_experiment"] == out.sizes["dim_dim2"]
+
+    def test_supermatrix_multiindex_transpose(self):
+        """Test matrix_transpose with multiindex in a supermatrix use case.
+
+        Forms S = A ⊗ B^T via outer product + stack, then verifies
+        S^T and S^T S against pure numpy.
+        """
+        rng = np.random.default_rng(42)
+        a_mat_np = rng.normal(size=(2, 2))
+        b_mat_np = rng.normal(size=(2, 2))
+
+        a_mat = xr.DataArray(a_mat_np, dims=["i", "j"])
+        b_mat = xr.DataArray(b_mat_np, dims=["k", "l"])
+
+        # S = A ⊗ B^T using outer product then stacking into multiindex dims
+        s_outer = a_mat * b_mat  # dims: (i, j, k, l)
+        s_da = s_outer.stack(row=("i", "l"), col=("j", "k"))
+
+        # Verify S matches numpy Kronecker product A ⊗ B^T
+        s_np = np.kron(a_mat_np, b_mat_np.T)
+        np.testing.assert_allclose(s_da.values, s_np)
+
+        # Compute S^T via matrix_transpose and verify against numpy transpose
+        s_t = matrix_transpose(s_da, dims=("row", "col"))
+        np.testing.assert_allclose(s_t.values, s_np.T)
+
+        # Compute S^T S in numpy
+        expected = s_np.T @ s_np
+        result = s_t.values @ s_da.values
+        np.testing.assert_allclose(result, expected)
 
     def test_matrix_power(self, matrices):
         out = matrix_power(matrices, 2, dims=("dim", "dim2"))
