@@ -79,6 +79,19 @@ def test_no_dims(matrices, monkeypatch):
     assert out.dims == matrices.dims
 
 
+def test_default_dims_context_manager(matrices):
+    with pytest.raises(TypeError, match="missing required argument dims"):
+        inv(matrices)
+
+    with linalg.default_dims(("dim", "dim2")):
+        out = inv(matrices)
+        assert out.dims == matrices.dims
+
+    # outside the context, it should raise again
+    with pytest.raises(TypeError, match="missing required argument dims"):
+        inv(matrices)
+
+
 class TestEinsumFamily:
     # raw_einsum calls einsum, so the tests on raw_einsum also cover einsum, then
     # there are some specific ones for various reasons,
