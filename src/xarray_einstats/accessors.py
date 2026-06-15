@@ -12,10 +12,12 @@ from .linalg import (
     eigvals,
     eigvalsh,
     inv,
+    matmul,
     matrix_power,
     matrix_rank,
     matrix_transpose,
     norm,
+    pinv,
     qr,
     slogdet,
     solve,
@@ -31,13 +33,17 @@ class LinAlgAccessor:
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    def matrix_transpose(self, dims):
+    def matrix_transpose(self, dims=None):
         """Call :func:`xarray_einstats.linalg.matrix_transpose` on this DataArray."""
         return matrix_transpose(self._obj, dims=dims)
 
     def matrix_power(self, n, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.matrix_power` on this DataArray."""
         return matrix_power(self._obj, n, dims=dims, **kwargs)
+
+    def matmul(self, other, dims=None, **kwargs):
+        """Call :func:`xarray_einstats.linalg.matmul` with this DataArray as ``a/da``."""
+        return matmul(self._obj, other, dims=dims, **kwargs)
 
     def cholesky(self, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.cholesky` on this DataArray."""
@@ -119,6 +125,10 @@ class LinAlgAccessor:
     def inv(self, dims=None, **kwargs):
         """Call :func:`xarray_einstats.linalg.inv` on this DataArray."""
         return inv(self._obj, dims=dims, **kwargs)
+
+    def pinv(self, dims=None, **kwargs):
+        """Call :func:`xarray_einstats.linalg.pinv` on this DataArray."""
+        return pinv(self._obj, dims=dims, **kwargs)
 
 
 @xr.register_dataarray_accessor("einops")
