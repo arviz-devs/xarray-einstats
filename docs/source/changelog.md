@@ -1,6 +1,18 @@
 # Change Log
 
-## v0.10.0 (2025 Feb 19)
+## v0.11.0 (2026 Jul 20)
+### New features
+* Add `linalg.default_dims` context manager {pull}`91`
+
+### Maintenance and fixes
+* Fix `linalg.matrix_transpose` to support inputs with MultiIndex {pull}`90`
+* Misc fixes to linalg accessor {pull}`90`
+
+### Documentation
+* Update Code of Conduct and reporting link {pull}`95`
+* Add example to Dask support page {pull}`97`
+
+## v0.10.0 (2026 Feb 19)
 ### Maintenance and fixes
 * Remove leftover print in `pinv` {pull}`87`
 * Update minimum dependency versions {pull}`88`

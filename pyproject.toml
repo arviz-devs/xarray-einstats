@@ -20,7 +20,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -28,8 +27,8 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "numpy>=2.0",
-  "scipy>=1.13",
-  "xarray>=2024.02.0",
+  "scipy>=1.14",
+  "xarray>=2024.07.0",
 ]
 
 [tool.flit.module]
