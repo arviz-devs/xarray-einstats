@@ -14,9 +14,11 @@ Details about the exact command are available at :ref:`installation`
 
 """
 
-from collections.abc import Hashable
+from collections.abc import Callable, Hashable
+from typing import Any
 
 import einops
+import numpy as np
 import xarray as xr
 
 __all__ = ["rearrange", "reduce", "DaskBackend"]
@@ -25,22 +27,22 @@ __all__ = ["rearrange", "reduce", "DaskBackend"]
 class DimHandler:
     """Handle converting actual dimension names to placeholders for einops."""
 
-    def __init__(self):
-        self.mapping = {}
+    def __init__(self) -> None:
+        self.mapping: dict[Hashable, str] = {}
 
-    def get_name(self, dim):
+    def get_name(self, dim: Hashable) -> str:
         """Return or generate a placeholder for a dimension name."""
         if dim in self.mapping:
-            return self.mapping.get(dim)
+            return self.mapping[dim]
         dim_txt = f"d{len(self.mapping)}"
         self.mapping[dim] = dim_txt
         return dim_txt
 
-    def get_names(self, dim_list):
+    def get_names(self, dim_list: list[Hashable]) -> str:
         """Automate calling get_name with an iterable."""
         return " ".join((self.get_name(dim) for dim in dim_list))
 
-    def rename_kwarg(self, key):
+    def rename_kwarg(self, key: Hashable) -> Hashable:
         """Process kwargs for axes_lengths.
 
         Users use as keys the dimension names they used in the input expressions
@@ -50,7 +52,12 @@ class DimHandler:
         return self.mapping.get(key, key)
 
 
-def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
+def process_pattern_list(
+    redims: list[Hashable | list[Any] | dict[Any, Any]],
+    handler: DimHandler,
+    allow_dict: bool = True,
+    allow_list: bool = True,
+) -> tuple[list[str], list[str], str]:
     """Process a pattern list and convert it to an einops expression using placeholders.
 
     Parameters
@@ -101,7 +108,7 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
             if len(subitem) != 1:
                 raise ValueError(
                     "dicts in pattern list must have a single key but instead "
-                    f"found {len(subitem)}: {subitem.keys()}"
+                    + f"found {len(subitem)}: {subitem.keys()}"
                 )
             key, values = list(subitem.items())[0]
             if isinstance(values, Hashable):
@@ -118,12 +125,12 @@ def process_pattern_list(redims, handler, allow_dict=True, allow_list=True):
         else:
             raise ValueError(
                 f"Found unsupported pattern type: {type(subitem)}, double check the docs. "
-                "This could be for example is using lists/tuples as elements of in_dims argument"
+                + "This could be for example is using lists/tuples as elements of in_dims argument"
             )
     return out, out_names, " ".join(txt)
 
 
-def translate_pattern(pattern):
+def translate_pattern(pattern: str) -> list[Hashable | list[Any] | dict[Any, Any]]:
     """Translate a string pattern to a list pattern.
 
     Parameters
@@ -185,7 +192,12 @@ def translate_pattern(pattern):
     return dims
 
 
-def _rearrange(da, out_dims, in_dims=None, dim_lengths=None):
+def _rearrange(
+    da: xr.DataArray,
+    out_dims: list[str | list[Any] | dict[Any, Any]],
+    in_dims: list[str | dict[Any, Any]] | None = None,
+    dim_lengths: dict[Hashable, int] | None = None,
+) -> xr.DataArray:
     """Wrap `einops.rearrange <https://einops.rocks/api/rearrange/>`_.
 
     This is the function that actually interfaces with ``einops``.
@@ -251,7 +263,13 @@ def _rearrange(da, out_dims, in_dims=None, dim_lengths=None):
     )
 
 
-def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwargs):
+def rearrange(
+    da: xr.DataArray,
+    pattern: str | list[Hashable | list[Any] | dict[Any, Any]],
+    pattern_in: list[Hashable | dict[Any, Any]] | None = None,
+    dim_lengths: dict[Hashable, int] | None = None,
+    **dim_lengths_kwargs: int,
+) -> xr.DataArray:
     """Expose `einops.rearrange <https://einops.rocks/api/rearrange/>`_ with an xarray-like API.
 
     It has two possible syntaxes which are independent and somewhat complementary.
@@ -318,7 +336,13 @@ def rearrange(da, pattern, pattern_in=None, dim_lengths=None, **dim_lengths_kwar
     return _rearrange(da, out_dims=pattern, in_dims=pattern_in, dim_lengths=dim_lengths)
 
 
-def _reduce(da, reduction, out_dims, in_dims=None, dim_lengths=None):
+def _reduce(
+    da: xr.DataArray,
+    reduction: str | Callable[..., Any],
+    out_dims: list[str | list[Any] | dict[Any, Any]],
+    in_dims: list[str | dict[Any, Any]] | None = None,
+    dim_lengths: dict[Hashable, int] | None = None,
+) -> xr.DataArray:
     """Wrap `einops.reduce <https://einops.rocks/api/reduce/>`_.
 
     This is the function that actually interfaces with ``einops``.
@@ -380,7 +404,14 @@ def _reduce(da, reduction, out_dims, in_dims=None, dim_lengths=None):
     )
 
 
-def reduce(da, pattern, reduction, pattern_in=None, dim_lengths=None, **dim_lengths_kwargs):
+def reduce(
+    da: xr.DataArray,
+    pattern: str | list[str | list[Any] | dict[Any, Any]],
+    reduction: str | Callable[..., Any],
+    pattern_in: list[str | dict[Any, Any]] | None = None,
+    dim_lengths: dict[Hashable, int] | None = None,
+    **dim_lengths_kwargs: int,
+) -> xr.DataArray:
     """Expose `einops.reduce <https://einops.rocks/api/reduce/>`_ with an xarray-like API.
 
     It has two possible syntaxes which are independent and somewhat complementary.
@@ -466,7 +497,7 @@ class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protecte
     # pylint: disable=no-self-use
     framework_name = "dask"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize DaskBackend.
 
         Contains the imports to avoid errors when dask is not installed
@@ -475,28 +506,28 @@ class DaskBackend(einops._backends.AbstractBackend):  # pylint: disable=protecte
 
         self.dsar = dsar
 
-    def is_appropriate_type(self, tensor):
+    def is_appropriate_type(self, tensor: Any) -> bool:
         """Recognizes tensors it can handle."""
         return isinstance(tensor, self.dsar.core.Array)
 
-    def from_numpy(self, x):  # noqa: D102
+    def from_numpy(self, x: np.ndarray) -> Any:  # noqa: D102
         return self.dsar.array(x)
 
-    def to_numpy(self, x):  # noqa: D102
+    def to_numpy(self, x: Any) -> np.ndarray:  # noqa: D102
         return x.compute()
 
-    def arange(self, start, stop):  # noqa: D102
+    def arange(self, start: int, stop: int) -> np.ndarray:  # noqa: D102
         # supplementary method used only in testing, so should implement CPU version
         return self.dsar.arange(start, stop)
 
-    def stack_on_zeroth_dimension(self, tensors: list):  # noqa: D102
+    def stack_on_zeroth_dimension(self, tensors: list[Any]) -> Any:  # noqa: D102
         return self.dsar.stack(tensors)
 
-    def tile(self, x, repeats):  # noqa: D102
+    def tile(self, x: Any, repeats: list[int]) -> Any:  # noqa: D102
         return self.dsar.tile(x, repeats)
 
-    def is_float_type(self, x):  # noqa: D102
+    def is_float_type(self, x: Any) -> bool:  # noqa: D102
         return x.dtype in ("float16", "float32", "float64", "float128")
 
-    def add_axis(self, x, new_position):  # noqa: D102
+    def add_axis(self, x: Any, new_position: int) -> Any:  # noqa: D102
         return self.dsar.expand_dims(x, new_position)

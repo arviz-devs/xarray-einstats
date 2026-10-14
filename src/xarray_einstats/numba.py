@@ -1,10 +1,15 @@
 """Module with numba enhanced functions."""
 
+from collections.abc import Hashable, Sequence
+from typing import Any
+
 import numba
 import numpy as np
 import xarray as xr
+from numpy.typing import ArrayLike
 
 from . import _remove_indexes_to_reduce, sort
+from ._types import DimOrDims
 
 __all__ = ["histogram", "searchsorted", "ecdf"]
 
@@ -27,7 +32,9 @@ __all__ = ["histogram", "searchsorted", "ecdf"]
     target="parallel",
     nopython=True,
 )
-def hist_ufunc(data, bin_edges, res):  # pragma: no cover
+def hist_ufunc(
+    data: np.ndarray, bin_edges: np.ndarray, res: np.ndarray
+) -> None:  # pragma: no cover
     """Use :func:`numba.guvectorize` to convert numpy histogram into a ufunc.
 
     Notes
@@ -48,7 +55,13 @@ def hist_ufunc(data, bin_edges, res):  # pragma: no cover
         res[i] = aux[i]
 
 
-def histogram(da, dims, bins=None, density=False, **kwargs):
+def histogram(
+    da: xr.DataArray,
+    dims: Hashable | Sequence[Hashable],
+    bins: ArrayLike | None = None,
+    density: bool = False,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Numbify :func:`numpy.histogram` to suport vectorized histograms.
 
     Parameters
@@ -146,7 +159,7 @@ def histogram(da, dims, bins=None, density=False, **kwargs):
     target="parallel",
     nopython=True,
 )
-def searchsorted_ufunc(da, v, res):  # pragma: no cover
+def searchsorted_ufunc(da: np.ndarray, v: np.ndarray, res: np.ndarray) -> None:  # pragma: no cover
     """Use :func:`numba.guvectorize` to convert numpy searchsorted into a vectorized ufunc.
 
     Notes
@@ -157,7 +170,9 @@ def searchsorted_ufunc(da, v, res):  # pragma: no cover
     res[:] = np.searchsorted(da, v, side="right")
 
 
-def searchsorted(da, v, dims=None, **kwargs):
+def searchsorted(
+    da: xr.DataArray, v: xr.DataArray, dims: DimOrDims = None, **kwargs: Any
+) -> xr.DataArray:
     """Numbify :func:`numpy.searchsorted` to support vectorized computations.
 
     Parameters
@@ -201,7 +216,13 @@ def searchsorted(da, v, dims=None, **kwargs):
     )
 
 
-def ecdf(da, dims=None, *, npoints=None, **kwargs):
+def ecdf(
+    da: xr.DataArray,
+    dims: DimOrDims = None,
+    *,
+    npoints: int | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Compute the x and y values of ecdf plots in a vectorized way.
 
     Parameters

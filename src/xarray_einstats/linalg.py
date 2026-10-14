@@ -1,4 +1,4 @@
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines, redefined-builtin
 """Wrappers for :mod:`numpy.linalg`.
 
 .. tip::
@@ -13,11 +13,14 @@
 """
 
 import sys
-from collections.abc import Iterable
+from collections.abc import Callable, Generator, Hashable, Iterable, Sequence
 from contextlib import contextmanager
+from typing import Any, Literal, final, overload
 
 import numpy as np
 import xarray as xr
+
+from ._types import Dims
 
 __all__ = [
     "matrix_power",
@@ -47,7 +50,7 @@ class MissingMonkeypatchError(Exception):
     """Error specific for the linalg module non-default yet accepted monkeypatch."""
 
 
-def get_default_dims(da1_dims, d2_dims=None):
+def get_default_dims(da1_dims: Sequence[str], d2_dims: Sequence[str] | None = None) -> list[str]:
     """Get the dimensions corresponding to the matrices.
 
     Parameters
@@ -122,20 +125,24 @@ def get_default_dims(da1_dims, d2_dims=None):
     raise MissingMonkeypatchError()
 
 
-def _attempt_default_dims(func, da1_dims, da2_dims=None):
+def _attempt_default_dims(
+    func: str, da1_dims: Sequence[str], da2_dims: Sequence[str] | None = None
+) -> list[str]:
     """Raise a more informative warning."""
     try:
         aux = get_default_dims(da1_dims, da2_dims)
     except MissingMonkeypatchError:
         raise TypeError(
             f"{func} missing required argument dims. Use "
-            "xarray_einstats.linalg.default_dims context manager or pass dims explicitly"
+            + "xarray_einstats.linalg.default_dims context manager or pass dims explicitly"
         ) from None
     return aux
 
 
 @contextmanager
-def default_dims(func_or_dims):
+def default_dims(
+    func_or_dims: Callable[..., Sequence[Hashable]] | Iterable[Hashable],
+) -> Generator[None, None, None]:
     """Context manager to temporarily set the default dimensions for linalg functions.
 
     Safer alternative to monkey patching :func:`get_default_dims`,
@@ -170,7 +177,7 @@ def default_dims(func_or_dims):
     _linalg = sys.modules[__name__]
     original_get_default_dims = _linalg.get_default_dims
 
-    def func(*args):
+    def func(*args: Any) -> Sequence[Hashable]:
         if isinstance(func_or_dims, Iterable):
             return func_or_dims
         return func_or_dims(*args)
@@ -182,8 +189,9 @@ def default_dims(func_or_dims):
         _linalg.get_default_dims = original_get_default_dims
 
 
+@final
 class PairHandler:
-    def __init__(self, all_dims, keep_dims):
+    def __init__(self, all_dims: set[Hashable], keep_dims: set[Hashable]) -> None:
         self.potential_out_dims = keep_dims.union(all_dims)
         self.einsum_axes = list(
             letter
@@ -194,7 +202,9 @@ class PairHandler:
         self.out_dims = []
         self.out_subscript = ""
 
-    def process_dim_da_pair(self, da, dim_sublist):
+    def process_dim_da_pair(
+        self, da: xr.DataArray, dim_sublist: list[Hashable]
+    ) -> tuple[str, list[Hashable]]:
         da_dims = da.dims
         out_dims = [
             dim for dim in da_dims if dim in self.potential_out_dims and dim not in dim_sublist
@@ -213,13 +223,17 @@ class PairHandler:
             return f"...{subscripts}", updated_in_dims
         return subscripts, updated_in_dims
 
-    def get_out_subscript(self):
+    def get_out_subscript(self) -> str:
         if not self.out_subscript:
             return ""
         return f"->{self.out_subscript}"
 
 
-def _einsum_parent(dims, *operands, keep_dims=frozenset()):
+def _einsum_parent(
+    dims: list[list[Hashable]],
+    *operands: xr.DataArray,
+    keep_dims: set[Hashable] = frozenset(),
+) -> tuple[str, list[list[Hashable]], list[Hashable]]:
     """Preprocess inputs to call :func:`numpy.einsum` or :func:`numpy.einsum_path`.
 
     Parameters
@@ -275,7 +289,7 @@ def _einsum_parent(dims, *operands, keep_dims=frozenset()):
     return subscripts, updated_in_dims, out_dims
 
 
-def _translate_pattern_string(subscripts):
+def _translate_pattern_string(subscripts: str) -> list[list[str]]:
     """Translate a pattern given as string of dimension names to list of dimension names."""
     if "->" in subscripts:
         in_subscripts, out_subscript = subscripts.split("->")
@@ -296,7 +310,13 @@ def _translate_pattern_string(subscripts):
     return dims
 
 
-def _einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs):
+def _einsum_path(
+    dims: Any,
+    *operands: Any,
+    keep_dims: Any = frozenset(),
+    optimize: Any = None,
+    **kwargs: Any,
+) -> Any:
     """Wrap :func:`numpy.einsum_path` directly."""
     op_kwargs = {} if optimize is None else {"optimize": optimize}
 
@@ -316,7 +336,13 @@ def _einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs
     ).values.item()
 
 
-def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs):
+def einsum_path(
+    dims: str | list[list[Hashable]],
+    *operands: xr.DataArray,
+    keep_dims: set[Hashable] = frozenset(),
+    optimize: str | None = None,
+    **kwargs: Any,
+) -> Any:
     """Expose :func:`numpy.einsum_path` with an xarray-like API.
 
     See :func:`xarray_einstats.einsum` for a detailed description of ``dims``
@@ -338,7 +364,14 @@ def einsum_path(dims, *operands, keep_dims=frozenset(), optimize=None, **kwargs)
     return _einsum_path(dims, *operands, keep_dims=keep_dims, optimize=optimize, **kwargs)
 
 
-def _einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
+def _einsum(
+    dims: Any,
+    *operands: Any,
+    keep_dims: Any = frozenset(),
+    out_append: str = "{i}",
+    einsum_kwargs: Any = None,
+    **kwargs: Any,
+) -> Any:
     """Wrap :func:`numpy.einsum` directly.
 
     The user facing version is :func:`xarray_einstats.einsum` which exposes two APIs.
@@ -366,7 +399,14 @@ def _einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwa
     )
 
 
-def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwargs=None, **kwargs):
+def einsum(
+    dims: str | list[list[str]],
+    *operands: xr.DataArray,
+    keep_dims: set[Hashable] = frozenset(),
+    out_append: str = "{i}",
+    einsum_kwargs: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Expose :func:`numpy.einsum` with an xarray-like API.
 
     Usage examples of all arguments is available at the
@@ -425,7 +465,14 @@ def einsum(dims, *operands, keep_dims=frozenset(), out_append="{i}", einsum_kwar
     )
 
 
-def matmul(da, db, dims=None, *, out_append="2", **kwargs):
+def matmul(
+    da: xr.DataArray,
+    db: xr.DataArray,
+    dims: Dims = None,
+    *,
+    out_append: str = "2",
+    **kwargs: Any,
+) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.matmul`.
 
     Usage examples of all arguments is available at the
@@ -486,12 +533,13 @@ def matmul(da, db, dims=None, *, out_append="2", **kwargs):
     )
     if rename:
         return matmul_aux.rename(
-            __aux_dim11__=dim11, __aux_dim22__=dim22 + out_append if dim22 == dim11 else dim22
+            __aux_dim11__=dim11,
+            __aux_dim22__=dim22 + out_append if dim22 == dim11 else dim22,
         )
     return matmul_aux
 
 
-def matrix_transpose(da, dims=None):
+def matrix_transpose(da: xr.DataArray, dims: Dims = None) -> xr.DataArray:
     """Transpose the underlying matrix without modifying the dimensions.
 
     This convenience function uses :meth:`~xarray.DataArray.rename` followed
@@ -530,7 +578,7 @@ def matrix_transpose(da, dims=None):
     return da_transposed.assign_coords({k: da_transposed.coords[k] for k in da.coords})
 
 
-def matrix_power(da, n, dims=None, **kwargs):
+def matrix_power(da: xr.DataArray, n: int, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.matrix_power`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -549,11 +597,16 @@ def matrix_power(da, n, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("matrix_power", da.dims)
     return xr.apply_ufunc(
-        np.linalg.matrix_power, da, n, input_core_dims=[dims, []], output_core_dims=[dims], **kwargs
+        np.linalg.matrix_power,
+        da,
+        n,
+        input_core_dims=[dims, []],
+        output_core_dims=[dims],
+        **kwargs,
     )
 
 
-def cholesky(da, dims=None, **kwargs):
+def cholesky(da: xr.DataArray, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.cholesky`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -571,11 +624,55 @@ def cholesky(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("cholesky", da.dims)
     return xr.apply_ufunc(
-        np.linalg.cholesky, da, input_core_dims=[dims], output_core_dims=[dims], **kwargs
+        np.linalg.cholesky,
+        da,
+        input_core_dims=[dims],
+        output_core_dims=[dims],
+        **kwargs,
     )
 
 
-def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: no cover
+@overload
+def qr(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    mode: Literal["reduced", "complete", "raw"] = "reduced",
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray]: ...
+
+
+@overload
+def qr(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    mode: Literal["r"],
+    out_append: str = "2",
+    **kwargs: Any,
+) -> xr.DataArray: ...
+
+
+@overload
+def qr(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    mode: str = "reduced",
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray] | xr.DataArray: ...
+
+
+def qr(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    mode: str = "reduced",
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray] | xr.DataArray:  # pragma: no cover
     """Wrap :func:`numpy.linalg.qr`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -622,9 +719,55 @@ def qr(da, dims=None, *, mode="reduced", out_append="2", **kwargs):  # pragma: n
     )
 
 
+@overload
 def svd(
-    da, dims=None, *, full_matrices=True, compute_uv=True, hermitian=False, out_append="2", **kwargs
-):
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    full_matrices: bool = True,
+    compute_uv: Literal[True] = True,
+    hermitian: bool = False,
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray, xr.DataArray]: ...
+
+
+@overload
+def svd(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    full_matrices: bool = True,
+    compute_uv: Literal[False],
+    hermitian: bool = False,
+    out_append: str = "2",
+    **kwargs: Any,
+) -> xr.DataArray: ...
+
+
+@overload
+def svd(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    full_matrices: bool = True,
+    compute_uv: bool = True,
+    hermitian: bool = False,
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray, xr.DataArray] | xr.DataArray: ...
+
+
+def svd(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    full_matrices: bool = True,
+    compute_uv: bool = True,
+    hermitian: bool = False,
+    out_append: str = "2",
+    **kwargs: Any,
+) -> tuple[xr.DataArray, xr.DataArray, xr.DataArray] | xr.DataArray:
     """Wrap :func:`numpy.linalg.svd`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -668,12 +811,16 @@ def svd(
         da,
         input_core_dims=[dims],
         output_core_dims=out_dims,
-        kwargs={"full_matrices": full_matrices, "compute_uv": compute_uv, "hermitian": hermitian},
+        kwargs={
+            "full_matrices": full_matrices,
+            "compute_uv": compute_uv,
+            "hermitian": hermitian,
+        },
         **kwargs,
     )
 
 
-def eig(da, dims=None, **kwargs):
+def eig(da: xr.DataArray, dims: Dims = None, **kwargs: Any) -> tuple[xr.DataArray, xr.DataArray]:
     """Wrap :func:`numpy.linalg.eig`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -692,11 +839,17 @@ def eig(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("eig", da.dims)
     return xr.apply_ufunc(
-        np.linalg.eig, da, input_core_dims=[dims], output_core_dims=[dims[-1:], dims], **kwargs
+        np.linalg.eig,
+        da,
+        input_core_dims=[dims],
+        output_core_dims=[dims[-1:], dims],
+        **kwargs,
     )
 
 
-def eigh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
+def eigh(
+    da: xr.DataArray, dims: Dims = None, *, UPLO: Literal["L", "U"] = "L", **kwargs: Any
+) -> tuple[xr.DataArray, xr.DataArray]:  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.eigh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -724,7 +877,7 @@ def eigh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
     )
 
 
-def eigvals(da, dims=None, **kwargs):
+def eigvals(da: xr.DataArray, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.eigvals`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -742,11 +895,17 @@ def eigvals(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("eigvals", da.dims)
     return xr.apply_ufunc(
-        np.linalg.eigvals, da, input_core_dims=[dims], output_core_dims=[dims[-1:]], **kwargs
+        np.linalg.eigvals,
+        da,
+        input_core_dims=[dims],
+        output_core_dims=[dims[-1:]],
+        **kwargs,
     )
 
 
-def eigvalsh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-name
+def eigvalsh(
+    da: xr.DataArray, dims: Dims = None, *, UPLO: Literal["L", "U"] = "L", **kwargs: Any
+) -> xr.DataArray:  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.eigvalsh`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -773,7 +932,9 @@ def eigvalsh(da, dims=None, *, UPLO="L", **kwargs):  # pylint: disable=invalid-n
     )
 
 
-def norm(da, dims=None, *, ord=None, **kwargs):  # pylint: disable=redefined-builtin
+def norm(
+    da: xr.DataArray, dims: Dims = None, *, ord: Any = None, **kwargs: Any
+) -> xr.DataArray:  # pylint: disable=redefined-builtin
     """Wrap :func:`numpy.linalg.norm`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -803,7 +964,13 @@ def norm(da, dims=None, *, ord=None, **kwargs):  # pylint: disable=redefined-bui
     )
 
 
-def cond(da, dims=None, *, p=None, **kwargs):  # pylint: disable=invalid-name
+def cond(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    p: int | float | Literal["fro"] | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:  # pylint: disable=invalid-name
     """Wrap :func:`numpy.linalg.cond`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -824,7 +991,7 @@ def cond(da, dims=None, *, p=None, **kwargs):  # pylint: disable=invalid-name
     return xr.apply_ufunc(np.linalg.cond, da, input_core_dims=[dims], kwargs={"p": p}, **kwargs)
 
 
-def det(da, dims=None, **kwargs):
+def det(da: xr.DataArray, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.det`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -844,7 +1011,15 @@ def det(da, dims=None, **kwargs):
     return xr.apply_ufunc(np.linalg.det, da, input_core_dims=[dims], **kwargs)
 
 
-def matrix_rank(da, dims=None, *, tol=None, rtol=None, hermitian=False, **kwargs):
+def matrix_rank(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    tol: float | xr.DataArray | None = None,
+    rtol: float | xr.DataArray | None = None,
+    hermitian: bool = False,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.matrix_rank`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -883,7 +1058,9 @@ def matrix_rank(da, dims=None, *, tol=None, rtol=None, hermitian=False, **kwargs
     )
 
 
-def slogdet(da, dims=None, **kwargs):
+def slogdet(
+    da: xr.DataArray, dims: Dims = None, **kwargs: Any
+) -> tuple[xr.DataArray, xr.DataArray]:
     """Wrap :func:`numpy.linalg.slogdet`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -902,11 +1079,23 @@ def slogdet(da, dims=None, **kwargs):
     if dims is None:
         dims = _attempt_default_dims("slogdet", da.dims)
     return xr.apply_ufunc(
-        np.linalg.slogdet, da, input_core_dims=[dims], output_core_dims=[[], []], **kwargs
+        np.linalg.slogdet,
+        da,
+        input_core_dims=[dims],
+        output_core_dims=[[], []],
+        **kwargs,
     )
 
 
-def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
+def trace(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    offset: int = 0,
+    dtype: np.typing.DTypeLike | None = None,
+    out: np.ndarray | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Wrap :func:`numpy.trace`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -925,11 +1114,19 @@ def trace(da, dims=None, *, offset=0, dtype=None, out=None, **kwargs):
     """
     if dims is None:
         dims = _attempt_default_dims("trace", da.dims)
-    trace_kwargs = {"offset": offset, "dtype": dtype, "out": out, "axis1": -2, "axis2": -1}
+    trace_kwargs = {
+        "offset": offset,
+        "dtype": dtype,
+        "out": out,
+        "axis1": -2,
+        "axis2": -1,
+    }
     return xr.apply_ufunc(np.trace, da, input_core_dims=[dims], kwargs=trace_kwargs, **kwargs)
 
 
-def diagonal(da, dims=None, *, offset=0, **kwargs):
+def diagonal(
+    da: xr.DataArray, dims: Dims = None, *, offset: int = 0, **kwargs: Any
+) -> xr.DataArray:
     """Wrap :func:`numpy.diagonal`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -959,7 +1156,7 @@ def diagonal(da, dims=None, *, offset=0, **kwargs):
     )
 
 
-def solve(da, db, dims=None, **kwargs):
+def solve(da: xr.DataArray, db: xr.DataArray, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.solve`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -1018,7 +1215,7 @@ def solve(da, db, dims=None, **kwargs):
         if k_dim in da:
             raise ValueError(
                 f"Found {k_dim} in `da`. If provided, the 3rd element of 'dims' "
-                "can only be in `db`."
+                + "can only be in `db`."
             )
     else:
         # a: (..., M, M) and b: (..., M) is not supported, so we add a dummy K
@@ -1030,14 +1227,19 @@ def solve(da, db, dims=None, **kwargs):
     in_dims = [dims[:2], [b_dim, k_dim]]
     out_dims = [[y_dim, k_dim]]
     da_out = xr.apply_ufunc(
-        np.linalg.solve, da, db, input_core_dims=in_dims, output_core_dims=out_dims, **kwargs
+        np.linalg.solve,
+        da,
+        db,
+        input_core_dims=in_dims,
+        output_core_dims=out_dims,
+        **kwargs,
     )
     if remove_k:
         return da_out.squeeze(k_dim, drop=True)
     return da_out
 
 
-def inv(da, dims=None, **kwargs):
+def inv(da: xr.DataArray, dims: Dims = None, **kwargs: Any) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.inv`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.
@@ -1059,7 +1261,15 @@ def inv(da, dims=None, **kwargs):
     )
 
 
-def pinv(da, dims=None, *, rcond=None, rtol=None, hermitian=False, **kwargs):
+def pinv(
+    da: xr.DataArray,
+    dims: Dims = None,
+    *,
+    rcond: float | xr.DataArray | None = None,
+    rtol: float | xr.DataArray | None = None,
+    hermitian: bool = False,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Wrap :func:`numpy.linalg.pinv`.
 
     Usage examples of all arguments is available at the :ref:`linalg_tutorial` page.

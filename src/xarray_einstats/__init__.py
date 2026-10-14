@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Hashable, Iterable, Sequence
+from typing import Any
+
 import numpy as np
 import xarray as xr
+from numpy.typing import DTypeLike
 
 from .linalg import einsum, einsum_path, matmul
 from .accessors import LinAlgAccessor, EinopsAccessor
+from ._types import Dims, DimOrDims
 
 __all__ = [
     "einsum",
@@ -17,12 +22,20 @@ __all__ = [
     "empty_ref",
     "LinAlgAccessor",
     "EinopsAccessor",
+    "Dims",
+    "DimOrDims",
 ]
 
 __version__ = "0.11.0"
 
 
-def sort(da, dim, kind=None, stable=None, **kwargs):
+def sort(
+    da: xr.DataArray,
+    dim: Hashable,
+    kind: str | None = None,
+    stable: bool | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Sort along dimension using DataArray values.
 
     Wrapper around :func:`numpy.sort`
@@ -57,7 +70,7 @@ def sort(da, dim, kind=None, stable=None, **kwargs):
     ).drop_vars(dim, errors="ignore")
 
 
-def _remove_indexes_to_reduce(da, dims):
+def _remove_indexes_to_reduce(da: xr.DataArray, dims: Iterable[Hashable]) -> xr.DataArray:
     """Remove indexes related to provided dims.
 
     Removes indexes related to dims on which we need to operate.
@@ -79,14 +92,21 @@ def _remove_indexes_to_reduce(da, dims):
     return da.reset_coords(coords_to_remove, drop=True)
 
 
-def _find_index(elem, to_search_in):
+def _find_index(
+    elem: Hashable, to_search_in: Sequence[xr.DataArray | xr.Dataset]
+) -> tuple[int, Hashable]:
     for i, da in enumerate(to_search_in):
         if elem in da.dims:
             return (i, elem)
     raise ValueError(f"{elem} not found in any reference object")
 
 
-def _create_ref(*args, dims, np_creator, dtype=None):
+def _create_ref(
+    *args: xr.DataArray | xr.Dataset,
+    dims: Sequence[Hashable],
+    np_creator: Callable[..., Any],
+    dtype: DTypeLike | None = None,
+) -> xr.DataArray:
     if dtype is None and all(isinstance(arg, xr.DataArray) for arg in args):
         dtype = np.result_type(*[arg.dtype for arg in args])
     ref_idxs = [_find_index(dim, args) for dim in dims]
@@ -100,7 +120,9 @@ def _create_ref(*args, dims, np_creator, dtype=None):
     )
 
 
-def zeros_ref(*args, dims, dtype=None):
+def zeros_ref(
+    *args: xr.DataArray | xr.Dataset, dims: Sequence[Hashable], dtype: DTypeLike | None = None
+) -> xr.DataArray:
     """Create a zeros DataArray from reference object(s).
 
     Creates a DataArray filled with zeros from reference
@@ -108,7 +130,7 @@ def zeros_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of (DataArray or Dataset)
+    *args : DataArray or Dataset
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
     dims : sequence of hashable
@@ -130,7 +152,9 @@ def zeros_ref(*args, dims, dtype=None):
     return _create_ref(*args, dims=dims, np_creator=np.zeros, dtype=dtype)
 
 
-def empty_ref(*args, dims, dtype=None):
+def empty_ref(
+    *args: xr.DataArray | xr.Dataset, dims: Sequence[Hashable], dtype: DTypeLike | None = None
+) -> xr.DataArray:
     """Create an empty DataArray from reference object(s).
 
     Creates an empty DataArray from reference
@@ -138,7 +162,7 @@ def empty_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of (DataArray or Dataset)
+    *args : DataArray or Dataset
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
     dims : sequence of hashable
@@ -160,7 +184,9 @@ def empty_ref(*args, dims, dtype=None):
     return _create_ref(*args, dims=dims, np_creator=np.empty, dtype=dtype)
 
 
-def ones_ref(*args, dims, dtype=None):
+def ones_ref(
+    *args: xr.DataArray | xr.Dataset, dims: Sequence[Hashable], dtype: DTypeLike | None = None
+) -> xr.DataArray:
     """Create a ones DataArray from reference object(s).
 
     Creates a DataArray filled with ones from reference
@@ -168,7 +194,7 @@ def ones_ref(*args, dims, dtype=None):
 
     Parameters
     ----------
-    *args : iterable of (DataArray or Dataset)
+    *args : DataArray or Dataset
         Reference objects from which the lengths and coordinate values (if any)
         of the given `dims` will be taken.
     dims : sequence of hashable

@@ -1,7 +1,8 @@
 # pylint: disable=too-few-public-methods
 """Wrappers for :mod:`scipy.stats` distributions."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Hashable, Sequence
+from typing import Any
 
 import numpy as np
 import xarray as xr
@@ -9,6 +10,7 @@ from numpy.linalg import LinAlgError
 from scipy import special, stats
 
 from . import _remove_indexes_to_reduce
+from ._types import DimOrDims
 from .linalg import cholesky, eigh
 
 __all__ = [
@@ -33,7 +35,7 @@ _SCIPY_RV_MAP = {
 }
 
 
-def get_default_dims(dims):
+def get_default_dims(dims: list[str]) -> list[str]:
     """Get default dims on which to perfom an operation.
 
     Whenever a function from :mod:`xarray_einstats.stats` is called with
@@ -91,7 +93,7 @@ def get_default_dims(dims):
     return dims
 
 
-def _asdataarray(x_or_q, dim_name):
+def _asdataarray(x_or_q: Any, dim_name: str) -> xr.DataArray:
     """Ensure input is a DataArray.
 
     This is designed for the x or q arguments in univariate distributions.
@@ -106,13 +108,15 @@ def _asdataarray(x_or_q, dim_name):
         return xr.DataArray(x_or_q_ary, dims=[dim_name], coords={dim_name: np.asarray(x_or_q)})
     raise ValueError(
         "To evaluate distribution methods on data with >=2 dims,"
-        " the input needs to be an xarray.DataArray"
+        + " the input needs to be an xarray.DataArray"
     )
 
 
-def _wrap_method(method):
+def _wrap_method(method: str) -> Callable[..., xr.DataArray]:
     # pylint: disable=protected-access
-    def aux(self, *args, apply_kwargs=None, **kwargs):
+    def aux(
+        self: Any, *args: Any, apply_kwargs: dict[str, Any] | None = None, **kwargs: Any
+    ) -> xr.DataArray:
         method = aux.method
         dim_name = "quantile" if method in {"ppf", "isf"} else "point"
         if self.scipy_rv:
@@ -145,7 +149,7 @@ class XrRV:
     doing this to be worth the extra maintenance burden.
     """
 
-    def __init__(self, dist, *args, **kwargs):
+    def __init__(self, dist: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         # TODO: improve once scipy new random variables stabilize a bit and hopefully expose
         # a base class for use to use isinstance(dist, baseclass) or something similar
         self.scipy_rv = not hasattr(dist, "rvs")
@@ -153,7 +157,9 @@ class XrRV:
         self.args = args
         self.kwargs = kwargs
 
-    def _broadcast_args(self, args, kwargs):
+    def _broadcast_args(
+        self, args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> tuple[list[Any], dict[str, Any], tuple[Any, ...], dict[str, Any]]:
         """Broadcast and combine initialization and method provided args and kwargs."""
         len_args = len(args) + len(self.args)
         all_args = [*args, *self.args, *kwargs.values(), *self.kwargs.values()]
@@ -185,14 +191,14 @@ class XrRV:
 
     def rvs(
         self,
-        *args,
-        size=None,
-        random_state=None,
-        dims=None,
-        coords=None,
-        apply_kwargs=None,
-        **kwargs,
-    ):
+        *args: Any,
+        size: Any = None,
+        random_state: Any = None,
+        dims: DimOrDims = None,
+        coords: Any = None,
+        apply_kwargs: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> xr.DataArray:
         """Implement base rvs method.
 
         In scipy, rvs has a common signature that doesn't depend on continuous
@@ -339,9 +345,9 @@ def _add_documented_method(cls, wrapped_cls, methods, extra_docs=None):
             method,
             "__doc__",
             f"Method wrapping ``.{method_name}`` of the input distribution "
-            "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
-            f":ref:`stats_tutorial/dists`.\n\n{extra_doc}\n\nReturns\n-------\nDataArray\n\n"
-            f"See Also\n--------\n:meth:`scipy.stats.{wrapped_cls}.{method_name}`",
+            + "with :func:`xarray.apply_ufunc`\n\nUsage examples available at "
+            + f":ref:`stats_tutorial/dists`.\n\n{extra_doc}\n\nReturns\n-------\nDataArray\n\n"
+            + f"See Also\n--------\n:meth:`scipy.stats.{wrapped_cls}.{method_name}`",
         )
         setattr(cls, method_name, method)
 
@@ -391,16 +397,18 @@ class multivariate_normal:  # pylint: disable=invalid-name
     is capable of handling batched inputs yet.
     """
 
-    def __init__(self, mean=None, cov=None, dims=None):
+    def __init__(self, mean: Any = None, cov: Any = None, dims: DimOrDims = None) -> None:
         """Initialize the multivariate_normal class."""
         self.mean = mean
         self.cov = cov
         self.dims = dims
 
-    def _process_inputs(self, mean, cov, dims):
+    def _process_inputs(
+        self, mean: Any, cov: Any, dims: DimOrDims
+    ) -> tuple[xr.DataArray, xr.DataArray, list[Hashable]]:
         base_error = (
             "No value found for parameter {param}. It needs to be defined either at class "
-            "initialization time or when calling its methods"
+            + "initialization time or when calling its methods"
         )
         mean = mean if mean is not None else self.mean
         if mean is None:
@@ -423,7 +431,16 @@ class multivariate_normal:  # pylint: disable=invalid-name
 
         return mean, cov, dims
 
-    def rvs(self, mean=None, cov=None, dims=None, *, size=1, rv_dims=None, random_state=None):
+    def rvs(
+        self,
+        mean: Any = None,
+        cov: Any = None,
+        dims: DimOrDims = None,
+        *,
+        size: Any = 1,
+        rv_dims: Sequence[Hashable] | None = None,
+        random_state: Any = None,
+    ) -> xr.DataArray:
         """Generate random samples from a multivariate normal."""
         mean, cov, dims = self._process_inputs(mean, cov, dims)
         dim1, dim2 = dims
@@ -438,7 +455,9 @@ class multivariate_normal:  # pylint: disable=invalid-name
         samples = std_norm.rvs(size=size, dims=rv_dims, random_state=random_state)
         return mean + xr.dot(cov_chol, samples, dim=dim2)
 
-    def logpdf(self, x, mean=None, cov=None, dims=None):
+    def logpdf(
+        self, x: Any, mean: Any = None, cov: Any = None, dims: DimOrDims = None
+    ) -> xr.DataArray:
         """Evaluate the logarithm of the multivariate normal probability density function."""
         x = _asdataarray(x, "point")
         mean, cov, dims = self._process_inputs(mean, cov, dims)
@@ -452,12 +471,20 @@ class multivariate_normal:  # pylint: disable=invalid-name
         maha = np.square(xr.dot(x_mu.rename({dim1: dim2}), u_mat, dim=dim2)).sum(dim=dim1)
         return -0.5 * (k * np.log(2 * np.pi) + maha + logdet_cov)
 
-    def pdf(self, x, mean=None, cov=None, dims=None):
+    def pdf(
+        self, x: Any, mean: Any = None, cov: Any = None, dims: DimOrDims = None
+    ) -> xr.DataArray:
         """Evaluate the multivariate normal probability density function."""
         return np.exp(self.logpdf(x, mean, cov, dims))
 
 
-def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
+def _apply_nonreduce_func(
+    func: Callable[..., Any],
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims,
+    kwargs: dict[str, Any],
+    func_kwargs: dict[str, Any] | None = None,
+) -> xr.DataArray | xr.Dataset:
     """Help wrap functions with a single input that return an output with the same size."""
     unstack = False
 
@@ -483,7 +510,13 @@ def _apply_nonreduce_func(func, da, dims, kwargs, func_kwargs=None):
     return out_da
 
 
-def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
+def _apply_reduce_func(
+    func: Callable[..., Any],
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims,
+    kwargs: dict[str, Any],
+    func_kwargs: dict[str, Any] | None = None,
+) -> xr.DataArray | xr.Dataset:
     """Help wrap functions with a single input that return an output after reducing some dimensions.
 
     It assumes that the function to be applied only takes ``int`` as ``axis`` and stacks multiple
@@ -498,12 +531,23 @@ def _apply_reduce_func(func, da, dims, kwargs, func_kwargs=None):
     else:
         core_dims = [dims]
     out_da = xr.apply_ufunc(
-        func, da, input_core_dims=[core_dims], output_core_dims=[[]], kwargs=func_kwargs, **kwargs
+        func,
+        da,
+        input_core_dims=[core_dims],
+        output_core_dims=[[]],
+        kwargs=func_kwargs,
+        **kwargs,
     )
     return out_da
 
 
-def rankdata(da, dims=None, *, method=None, **kwargs):
+def rankdata(
+    da: xr.DataArray,
+    dims: DimOrDims = None,
+    *,
+    method: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray:
     """Wrap and extend :func:`scipy.stats.rankdata`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -529,7 +573,14 @@ def rankdata(da, dims=None, *, method=None, **kwargs):
     return _apply_nonreduce_func(stats.rankdata, da, dims, kwargs, rank_kwargs)
 
 
-def gmean(da, dims=None, dtype=None, *, weights=None, **kwargs):
+def gmean(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    dtype: Any = None,
+    *,
+    weights: Any = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.gmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -542,7 +593,13 @@ def gmean(da, dims=None, dtype=None, *, weights=None, **kwargs):
     return _apply_reduce_func(stats.gmean, da, dims, kwargs, gmean_kwargs)
 
 
-def hmean(da, dims=None, *, dtype=None, **kwargs):
+def hmean(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    dtype: Any = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.hmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -553,7 +610,15 @@ def hmean(da, dims=None, *, dtype=None, **kwargs):
     return _apply_reduce_func(stats.hmean, da, dims, kwargs, hmean_kwargs)
 
 
-def circmean(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
+def circmean(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    high: float = 2 * np.pi,
+    low: float = 0,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.circmean`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -564,7 +629,15 @@ def circmean(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs)
     return _apply_reduce_func(stats.circmean, da, dims, kwargs, circmean_kwargs)
 
 
-def circvar(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
+def circvar(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    high: float = 2 * np.pi,
+    low: float = 0,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.circvar`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -575,7 +648,15 @@ def circvar(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.circvar, da, dims, kwargs, circvar_kwargs)
 
 
-def circstd(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
+def circstd(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    high: float = 2 * np.pi,
+    low: float = 0,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.circstd`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -586,7 +667,15 @@ def circstd(da, dims=None, *, high=2 * np.pi, low=0, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.circstd, da, dims, kwargs, circstd_kwargs)
 
 
-def kurtosis(da, dims=None, *, fisher=True, bias=True, nan_policy=None, **kwargs):
+def kurtosis(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    fisher: bool = True,
+    bias: bool = True,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.kurtosis`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -597,7 +686,14 @@ def kurtosis(da, dims=None, *, fisher=True, bias=True, nan_policy=None, **kwargs
     return _apply_reduce_func(stats.kurtosis, da, dims, kwargs, kurtosis_kwargs)
 
 
-def skew(da, dims=None, *, bias=True, nan_policy=None, **kwargs):
+def skew(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    bias: bool = True,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.skew`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -608,7 +704,14 @@ def skew(da, dims=None, *, bias=True, nan_policy=None, **kwargs):
     return _apply_reduce_func(stats.skew, da, dims, kwargs, skew_kwargs)
 
 
-def logsumexp(da, dims=None, *, b=True, return_sign=False, **kwargs):
+def logsumexp(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    b: Any = True,
+    return_sign: bool = False,
+    **kwargs: Any,
+) -> xr.DataArray | tuple[xr.DataArray, xr.DataArray]:
     """Wrap and extend :func:`scipy.special.logsumexp`.
 
     Usage examples available at :ref:`stats_tutorial`
@@ -656,7 +759,15 @@ def logsumexp(da, dims=None, *, b=True, return_sign=False, **kwargs):
         )
 
 
-def median_abs_deviation(da, dims=None, *, center=None, scale=1, nan_policy=None, **kwargs):
+def median_abs_deviation(
+    da: xr.DataArray | xr.Dataset,
+    dims: DimOrDims = None,
+    *,
+    center: Callable[..., Any] | None = None,
+    scale: Any = 1,
+    nan_policy: str | None = None,
+    **kwargs: Any,
+) -> xr.DataArray | xr.Dataset:
     """Wrap and extend :func:`scipy.stats.median_abs_deviation`.
 
     Usage examples available at :ref:`stats_tutorial`.

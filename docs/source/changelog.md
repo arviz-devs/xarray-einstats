@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+### Maintenance and fixes
+* Improve typing for linear algebra accessors and share dimension type aliases.
+* Replace generated typing stubs with inline annotations across the package.
+
 ## v0.11.0 (2026 Jul 20)
 ### New features
 * Add `linalg.default_dims` context manager {pull}`91`

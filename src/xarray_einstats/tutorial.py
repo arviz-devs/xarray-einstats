@@ -1,5 +1,8 @@
 """Tutorial module with data for docs and quick testing."""
 
+from collections.abc import Sequence
+from typing import Any
+
 import numpy as np
 import xarray as xr
 
@@ -12,7 +15,7 @@ except ModuleNotFoundError:
     array_display = False  # pylint: disable=invalid-name
 
 
-def generate_mcmc_like_dataset(seed=None):
+def generate_mcmc_like_dataset(seed: int | Sequence[int] | None = None) -> xr.Dataset:
     """Generate a Dataset with multiple variables, some with dimensions from mcmc sampling.
 
     Parameters
@@ -50,7 +53,9 @@ def generate_mcmc_like_dataset(seed=None):
     return ds
 
 
-def generate_matrices_dataarray(seed=None):
+def generate_matrices_dataarray(
+    seed: int | Sequence[int] | None = None,
+) -> xr.DataArray:
     """Generate a 4d DataArray representing a batch of matrices.
 
     Parameters
@@ -83,19 +88,22 @@ def generate_matrices_dataarray(seed=None):
 
 if array_display:
 
-    def display_np_arrays_as_images():
+    def display_np_arrays_as_images() -> None:
         """Display numpy arrays as images by default in IPython and Jupyter.
 
         Only needs to be imported for the behaviour to be configured.
         """
         # pylint: disable=protected-access
 
-        def np_to_png(a):
+        def np_to_png(a: np.ndarray) -> bytes | None:
             if 2 <= len(a.shape) <= 3:
                 return fromarray(np.array(np.clip(a, 0, 1) * 255, dtype="uint8"))._repr_png_()
             return fromarray(np.zeros([1, 1], dtype="uint8"))._repr_png_()
 
-        def np_to_text(obj, p, cycle):  # pylint: disable=unused-argument, invalid-name
+        def np_to_text(
+            obj: Any, p: Any, cycle: Any
+        ) -> None:  # pylint: disable=unused-argument, invalid-name
+            del p, cycle
             if len(obj.shape) < 2:
                 print(repr(obj))
             if 2 <= len(obj.shape) <= 3:
