@@ -1027,7 +1027,8 @@ def solve(da, db, dims=None, **kwargs):
         db = db.expand_dims(k_dim)
     b_dim = dims[0] if dims[0] in db.dims else dims[1]
     y_dim = dims[1] if dims[0] in db.dims else dims[0]
-    in_dims = [dims[:2], [b_dim, k_dim]]
+    # NumPy's row axis must match the dimension shared with the right-hand side.
+    in_dims = [[b_dim, y_dim], [b_dim, k_dim]]
     out_dims = [[y_dim, k_dim]]
     da_out = xr.apply_ufunc(
         np.linalg.solve, da, db, input_core_dims=in_dims, output_core_dims=out_dims, **kwargs
